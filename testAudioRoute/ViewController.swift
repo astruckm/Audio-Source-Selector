@@ -9,109 +9,69 @@
 import UIKit
 import AVFoundation
 
-class ViewController: UIViewController {
-    @IBOutlet weak var setting1: UILabel!
-    @IBOutlet weak var setting2: UILabel!
-    @IBOutlet weak var setting3: UILabel!
-    @IBOutlet weak var output: UITextView!    
+class ViewController: UIViewController, UITextViewDelegate {
+    @IBOutlet weak var output: UITextView!
     @IBOutlet weak var audioSourcesTableView: UITableView!
     
-    //Model
-    struct AudioSource {
-        let name: String
-        let sources: [String]?
-        let route: String?
-        var isInUse: Bool
-        
-        init(name: String, sources: [String]? = nil, route: String? = nil, isInUse: Bool = false) {
-            self.name = name
-            self.sources = sources
-            self.route = route
-            self.isInUse = isInUse
-        }
-    }
-    
-    //TODO: account for all, and add this to codebase (depending on Modacity code)
-    enum PossibleAudioSources {
-        case deviceSpeakers
-        case headphones
-        case bluetoothHeadset
-    }
     
     //MARK: Properties
+    let audioSession = AVAudioSession.sharedInstance()
+    let audioPlayer = AVAudioPlayer()
+
+    var currentInput: AVAudioSessionPortDescription?
+    var currentOutput: AVAudioSessionPortDescription?
     var audioInputSources = [AudioSource]()
     var audioOutputSources = [AudioSource]()
     
-    let audioSession = AVAudioSession()
-    let audioPlayer = AVAudioPlayer()
-    var headphonesConnected = false {
-        didSet {
-            updateUI(settingSelected: headphonesConnected ? setting1 : setting2)
-        }
-    }
+    
     
     //MARK: View Controller lifecycle methods
     override func viewDidLoad() {
         super.viewDidLoad()
         audioSourcesTableView.tableFooterView = UIView()
+        currentInput = audioSession.currentRoute.inputs.first
+        currentOutput = audioSession.currentRoute.outputs.first
         
         NotificationCenter.default.post(name: AVAudioSession.routeChangeNotification, object: nil)
         setupNotifications()
         
-        let labelToSelect  = headphonesConnected ? setting1 : setting2
-        updateUI(settingSelected: labelToSelect!)
-        displayAudioSessionInfo()
+        updateAudioSessionInfo()
     }
     
     //MARK: Methods
-    func displayAudioSessionInfo() {
-        //TODO: use this to have in-use audio source cell checkmarked. Need to check inputs and outputs against currentRoutes ins and outs
-        let inputNames: Set<String> = Set(audioSession.currentRoute.inputs.map { ($0.portName) })
-        let outputNames: Set<String> = Set(audioSession.currentRoute.outputs.map { $0.portName })
+    func updateAudioSessionInfo() {
+        let currentRoute = audioSession.currentRoute
+        output.text += "\nCurrent route: \(currentRoute) \n"
         
-        output.text += "\nCurrent route: \(audioSession.currentRoute) \n"
-
-        if let availableInputs = audioSession.availableInputs {
-            availableInputs.forEach { (input) in
-                output.text += "portName: " + input.portName + "\n"
-                let isInCurrentRoute = inputNames.contains(input.portName) ///provisional code
-                
-                let dataSourceNames = extractAudioInputDataSourceDescription(input.dataSources)
-                output.text += "Input dataSources: \(String(describing: dataSourceNames)) \n"
-                addInputAudioSource(withName: input.portName, sources: dataSourceNames, isInUse: isInCurrentRoute)
-            }
-        }
-        if let outputDataSources = audioSession.outputDataSources {
-            outputDataSources.forEach { (outputDataSource) in
-                let dataSourceName = outputDataSource.dataSourceName
-                let isInCurrentRoute = outputNames.contains(dataSourceName) ///provisional code
-                
-                output.text += "Output dataSourceName: \(dataSourceName) \n"
-                addOutputAudioSource(withName: dataSourceName, isInUse: isInCurrentRoute)
-            }
-        } else {
-            output.text += "\nOutput data source is nil. \n"
-        }
         
-    }
-
-    func updateUI(settingSelected: UILabel) {
-        let labels = [setting1, setting2, setting3]
-        for label in labels {
-            label?.textColor = .black
+        for input in currentRoute.inputs {
+            let dataSources = extractAudioInputDataSourceDescription(input.dataSources)
+            let isCurrentInput = input == currentInput
+            addInputAudioSource(withName: input.portName, sources: dataSources, isInUse: isCurrentInput)
         }
-        settingSelected.textColor = .red
+        for output in currentRoute.outputs {
+            let dataSources = extractAudioInputDataSourceDescription(output.dataSources)
+            let isCurrentInput = output == currentOutput
+            addOutputAudioSource(withName: output.portName, sources: dataSources, isInUse: isCurrentInput)
+        }
+
     }
     
     //helpers
-    private func addInputAudioSource(withName name: String, sources: [String]? = nil, andRoute route: String? = nil, isInUse: Bool = false) {
-        let audioSource = AudioSource(name: name, sources: sources, route: route, isInUse: isInUse)
-        audioInputSources.append(audioSource)
+    private func addInputAudioSource(withName name: String, sources: [String]? = nil, isInUse: Bool = false) {
+        let audioSource = AudioSource(name: name, dataSources: sources, isInUse: isInUse)
+        let isAlreadyAdded = audioInputSources.contains(audioSource)
+        if isAlreadyAdded == false {
+            audioInputSources.append(audioSource)
+        }
     }
 
-    private func addOutputAudioSource(withName name: String, sources: [String]? = nil, andRoute route: String? = nil, isInUse: Bool = false) {
-        let audioSource = AudioSource(name: name, sources: sources, route: route, isInUse: isInUse)
-        audioOutputSources.append(audioSource)
+    private func addOutputAudioSource(withName name: String, sources: [String]? = nil, isInUse: Bool = false) {
+        let audioSource = AudioSource(name: name, dataSources: sources, isInUse: isInUse)
+        let isAlreadyAdded = audioOutputSources.contains(audioSource)
+        if isAlreadyAdded == false {
+            audioOutputSources.append(audioSource)
+        }
     }
     
     private func extractAudioInputDataSourceDescription(_ dataSource: [AVAudioSessionDataSourceDescription]?) -> [String]? {
@@ -136,30 +96,26 @@ class ViewController: UIViewController {
         output.text += "\nRoute change reason is: \(reason)\n\n"
         switch reason {
         case .newDeviceAvailable:
-            let session = AVAudioSession.sharedInstance()
-            for currentOutput in session.currentRoute.outputs where currentOutput.portType == AVAudioSession.Port.headphones {
-                output.text += "headphones connected set to true"
-                headphonesConnected = true
+            for currentOutput in audioSession.currentRoute.outputs where currentOutput.portType == AVAudioSession.Port.headphones {
+                
             }
-            //TODO: this is where that by default, when a new device is plugged in, Modacity uses that device???
+            updateAudioSessionInfo()
+            //TODO: this is where by default, when a new device is plugged in, Modacity uses that device
+            //also, it appends a new device to input or output audio sources
         case .oldDeviceUnavailable:
             if let previousRoute =
                 userInfo[AVAudioSessionRouteChangePreviousRouteKey] as? AVAudioSessionRouteDescription {
                 for currentOutput in previousRoute.outputs where currentOutput.portType == AVAudioSession.Port.headphones {
-                    output.text += "headphones connected set to false"
-                    headphonesConnected = false
+                    
                 }
             }
-        //TODO: account for ALL possible reasons
+        //TODO: handle other possible reasons
         default: ()
-            headphonesConnected.toggle()
             output.text += "unknown reason"
         }
         
-        audioInputSources = []
-        audioOutputSources = []
-        displayAudioSessionInfo()
         audioSourcesTableView.reloadData()
+        //TODO: some func that calls audioSession.setPreferredInput if input needs to change, and for some reason, it won't change automatically (is that necessary & possible for output as well?)
     }
     
 

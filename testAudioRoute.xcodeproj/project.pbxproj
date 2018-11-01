@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		720F678C218A749B00BF8719 /* AudioSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 720F678B218A749B00BF8719 /* AudioSource.swift */; };
 		721C68AF2187A11F00EFDCFC /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721C68AE2187A11F00EFDCFC /* AppDelegate.swift */; };
 		721C68B12187A11F00EFDCFC /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721C68B02187A11F00EFDCFC /* ViewController.swift */; };
 		721C68B42187A11F00EFDCFC /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 721C68B22187A11F00EFDCFC /* Main.storyboard */; };
@@ -17,6 +18,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		720F678B218A749B00BF8719 /* AudioSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSource.swift; sourceTree = "<group>"; };
 		721C68AB2187A11F00EFDCFC /* testAudioRoute.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = testAudioRoute.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		721C68AE2187A11F00EFDCFC /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		721C68B02187A11F00EFDCFC /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -60,6 +62,7 @@
 			children = (
 				721C68AE2187A11F00EFDCFC /* AppDelegate.swift */,
 				721C68B02187A11F00EFDCFC /* ViewController.swift */,
+				720F678B218A749B00BF8719 /* AudioSource.swift */,
 				722567452189795E006B3FF7 /* TableViewDataSourceDelegate.swift */,
 				721C68B22187A11F00EFDCFC /* Main.storyboard */,
 				7225674721899DBF006B3FF7 /* AudioSourceTableViewCell.swift */,
@@ -145,6 +148,7 @@
 				721C68AF2187A11F00EFDCFC /* AppDelegate.swift in Sources */,
 				722567462189795E006B3FF7 /* TableViewDataSourceDelegate.swift in Sources */,
 				7225674821899DBF006B3FF7 /* AudioSourceTableViewCell.swift in Sources */,
+				720F678C218A749B00BF8719 /* AudioSource.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

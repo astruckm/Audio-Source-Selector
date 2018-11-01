@@ -9,23 +9,32 @@
 import UIKit
 
 extension ViewController: UITableViewDataSource, UITableViewDelegate {
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        let headerView = UITableViewCell()
-        headerView.backgroundColor = .lightGray
-        
-        
-        return headerView
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        switch section {
+        case 0:
+            return "METRODRONE"
+        case 1:
+            return "AUDIO INPUT SOURCE"
+        case 2:
+            return "AUDIO OUTPUT"
+        default:
+            print("Error populating section titles")
+            return ""
+        }
+
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
-        return 2
+        return 3
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
         case 0:
-            return audioInputSources.count
+            return 1
         case 1:
+            return audioInputSources.count
+        case 2:
             return audioOutputSources.count
         default:
             return 3
@@ -33,22 +42,28 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "audioSource", for: indexPath) as! AudioSourceTableViewCell
+        //TODO: this needs to match what is already in Modacity code
+        let metrodroneCell = tableView.dequeueReusableCell(withIdentifier: "metrodrone", for: indexPath)
+        guard let audioSourceCell = tableView.dequeueReusableCell(withIdentifier: "audioSource", for: indexPath) as? AudioSourceTableViewCell else { return UITableViewCell() }
         
         switch indexPath.section {
         case 0:
-            cell.audioSourceLabel.text = audioInputSources[indexPath.row].name
-            cell.audioSourceLabel.isHighlighted = audioInputSources[indexPath.row].isInUse ? true : false
+            return metrodroneCell
         case 1:
-            cell.audioSourceLabel.text = audioOutputSources[indexPath.row].name
-            cell.audioSourceLabel.isHighlighted = audioOutputSources[indexPath.row].isInUse ? true : false
-
+            audioSourceCell.audioSourceLabel.text = audioInputSources[indexPath.row].name
+            audioSourceCell.audioSourceLabel.isHighlighted = audioInputSources[indexPath.row].isInUse
+            print("is in use? \(audioInputSources[indexPath.row].isInUse)")
+            return audioSourceCell
+        case 2:
+            audioSourceCell.audioSourceLabel.text = audioOutputSources[indexPath.row].name
+            audioSourceCell.audioSourceLabel.isHighlighted = audioOutputSources[indexPath.row].isInUse
+            print("is in use? \(audioInputSources[indexPath.row].isInUse)")
+            return audioSourceCell
         default:
             print("unable to populate cells")
+            return UITableViewCell()
         }
         
-        
-        return cell
     }
     
 }
