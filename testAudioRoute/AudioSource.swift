@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import AVFoundation
 
 //TODO: is this necessary--use AVAudioSession.CategoryOptions instead ?
 enum PossibleAudioSourceName {
@@ -17,14 +18,14 @@ enum PossibleAudioSourceName {
 
 //TODO: is this necessary--use AVAudioSessionRouteDescription or AVAudioSessionPortDescription
 struct AudioSource: Equatable {
-    let name: String
-    let dataSources: [String]?
+    let port: AVAudioSessionPortDescription
     var isInUse: Bool
     
-    init(name: String, dataSources: [String]? = nil, isInUse: Bool = false) {
-        self.name = name
-        self.dataSources = dataSources
+    init(port: AVAudioSessionPortDescription, isInUse: Bool = false) {
+        self.port = port
         self.isInUse = isInUse
     }
+    
 }
+
 

@@ -9,6 +9,9 @@
 import UIKit
 import AVFoundation
 
+
+//Use AVAudioSessionPort type only
+//Use currentInput to determine selected cell
 class ViewController: UIViewController, UITextViewDelegate {
     @IBOutlet weak var output: UITextView!
     @IBOutlet weak var audioSourcesTableView: UITableView!
@@ -18,19 +21,44 @@ class ViewController: UIViewController, UITextViewDelegate {
     let audioSession = AVAudioSession.sharedInstance()
     let audioPlayer = AVAudioPlayer()
 
-    var currentInput: AVAudioSessionPortDescription?
-    var currentOutput: AVAudioSessionPortDescription?
-    var audioInputSources = [AudioSource]()
-    var audioOutputSources = [AudioSource]()
+    var audioInputSources = [AVAudioSession.Port]()
+    var audioOutputSources = [AVAudioSession.Port]()
     
+    var currentInput: AVAudioSession.Port? {
+        didSet {
+            previousInput = oldValue
+            output.text += "\ncurrentInput is: \(String(describing: currentInput)), previousInput is: \(String(describing: previousInput))\n"
+        }
+    }
+    var currentOutput: AVAudioSession.Port? {
+        didSet {
+            previousOutput = oldValue
+            output.text += "\ncurrentOutput is: \(String(describing: currentOutput)), previousOutput is: \(String(describing: previousOutput))\n"
+        }
+
+    }
+    var previousInput: AVAudioSession.Port?
+    var previousOutput: AVAudioSession.Port?
     
     
     //MARK: View Controller lifecycle methods
     override func viewDidLoad() {
         super.viewDidLoad()
         audioSourcesTableView.tableFooterView = UIView()
-        currentInput = audioSession.currentRoute.inputs.first
-        currentOutput = audioSession.currentRoute.outputs.first
+        
+        output.text += audioSession.currentRoute.description
+        currentInput = audioSession.currentRoute.inputs.map({$0.portType}).first
+        currentOutput = audioSession.currentRoute.outputs.map({$0.portType}).first
+        previousInput = nil
+        previousOutput = nil
+        for input in audioSession.currentRoute.inputs {
+//            let isInitialSource = input.portType == currentInput
+            audioInputSources.append(input.portType)
+        }
+        for output in audioSession.currentRoute.outputs {
+//            let isInitialSource = output.portType == currentOutput
+            audioOutputSources.append(output.portType)
+        }
         
         NotificationCenter.default.post(name: AVAudioSession.routeChangeNotification, object: nil)
         setupNotifications()
@@ -39,38 +67,34 @@ class ViewController: UIViewController, UITextViewDelegate {
     }
     
     //MARK: Methods
-    func updateAudioSessionInfo() {
-        let currentRoute = audioSession.currentRoute
-        output.text += "\nCurrent route: \(currentRoute) \n"
-        
-        
-        for input in currentRoute.inputs {
-            let dataSources = extractAudioInputDataSourceDescription(input.dataSources)
-            let isCurrentInput = input == currentInput
-            addInputAudioSource(withName: input.portName, sources: dataSources, isInUse: isCurrentInput)
+    func updateAudioSessionInfo(withNewInput newInput: AVAudioSession.Port? = nil, newOutput: AVAudioSession.Port? = nil) {
+        if let newInput = newInput {
+            let isCurrentInput = newInput == currentInput
+            addInputAudioSource(withPort: newInput, isInUse: isCurrentInput)
         }
-        for output in currentRoute.outputs {
-            let dataSources = extractAudioInputDataSourceDescription(output.dataSources)
-            let isCurrentInput = output == currentOutput
-            addOutputAudioSource(withName: output.portName, sources: dataSources, isInUse: isCurrentInput)
+        if let newOutput = newOutput {
+            let isCurrentOutput = newOutput == currentOutput
+            addOutputAudioSource(withPort: newOutput, isInUse: isCurrentOutput)
         }
-
+        
     }
     
     //helpers
-    private func addInputAudioSource(withName name: String, sources: [String]? = nil, isInUse: Bool = false) {
-        let audioSource = AudioSource(name: name, dataSources: sources, isInUse: isInUse)
-        let isAlreadyAdded = audioInputSources.contains(audioSource)
+    //Adds non-duplicate input source
+    private func addInputAudioSource(withPort port: AVAudioSession.Port, isInUse: Bool = false) {
+//        let audioSource = AudioSource(port: port, isInUse: isInUse)
+        let isAlreadyAdded = audioInputSources.contains(port)
         if isAlreadyAdded == false {
-            audioInputSources.append(audioSource)
+            audioInputSources.append(port)
         }
     }
 
-    private func addOutputAudioSource(withName name: String, sources: [String]? = nil, isInUse: Bool = false) {
-        let audioSource = AudioSource(name: name, dataSources: sources, isInUse: isInUse)
-        let isAlreadyAdded = audioOutputSources.contains(audioSource)
+    //Adds non-duplicate output source
+    private func addOutputAudioSource(withPort port: AVAudioSession.Port, isInUse: Bool = false) {
+//        let audioSource = AudioSource(port: port, isInUse: isInUse)
+        let isAlreadyAdded = audioOutputSources.contains(port)
         if isAlreadyAdded == false {
-            audioOutputSources.append(audioSource)
+            audioOutputSources.append(port)
         }
     }
     
@@ -93,22 +117,20 @@ class ViewController: UIViewController, UITextViewDelegate {
             let reason = AVAudioSession.RouteChangeReason(rawValue:reasonValue) else {
                 return
         }
-        output.text += "\nRoute change reason is: \(reason)\n\n"
         switch reason {
         case .newDeviceAvailable:
-            for currentOutput in audioSession.currentRoute.outputs where currentOutput.portType == AVAudioSession.Port.headphones {
-                
-            }
-            updateAudioSessionInfo()
-            //TODO: this is where by default, when a new device is plugged in, Modacity uses that device
-            //also, it appends a new device to input or output audio sources
+            let newInput = inputPortThatChanged(among: audioSession.currentRoute.inputs, wasPluggedIn: true)
+            let newOutput = outputPortThatChanged(among: audioSession.currentRoute.outputs, wasPluggedIn: true)
+            //TODO: if new device is input, append to input, if output append to output
+            output.text += "\nRoute change reason is: device plugged in"
+            updateAudioSessionInfo(withNewInput: newInput, newOutput: newOutput)
         case .oldDeviceUnavailable:
-            if let previousRoute =
-                userInfo[AVAudioSessionRouteChangePreviousRouteKey] as? AVAudioSessionRouteDescription {
-                for currentOutput in previousRoute.outputs where currentOutput.portType == AVAudioSession.Port.headphones {
-                    
-                }
-            }
+            let newInput = inputPortThatChanged(among: audioSession.currentRoute.inputs, wasPluggedIn: false)
+            let newOutput = outputPortThatChanged(among: audioSession.currentRoute.outputs, wasPluggedIn: false)
+            output.text += "\nRoute change reason is: device unplugged"
+            updateAudioSessionInfo(withNewInput: newInput, newOutput: newOutput)
+        case .routeConfigurationChange:
+            output.text += "\nRoute change reason is: route configuration change"
         //TODO: handle other possible reasons
         default: ()
             output.text += "unknown reason"
@@ -118,6 +140,31 @@ class ViewController: UIViewController, UITextViewDelegate {
         //TODO: some func that calls audioSession.setPreferredInput if input needs to change, and for some reason, it won't change automatically (is that necessary & possible for output as well?)
     }
     
+    private func inputPortThatChanged(among portDescriptions: [AVAudioSessionPortDescription], wasPluggedIn: Bool) ->  AVAudioSession.Port? {
+        for portDescription in portDescriptions {
+            if !audioInputSources.contains(portDescription.portType) {
+                //Is a totally new input source
+                currentInput = portDescription.portType
+                return portDescription.portType
+            } else {
+                currentInput = wasPluggedIn ? portDescription.portType : previousInput
+            }
+        }
+        return nil
+    }
+    
+    private func outputPortThatChanged(among portDescriptions: [AVAudioSessionPortDescription], wasPluggedIn: Bool) ->  AVAudioSession.Port? {
+        for portDescription in portDescriptions {
+            if !audioOutputSources.contains(portDescription.portType) {
+                //Is a totally new output source
+                currentOutput = portDescription.portType
+                return portDescription.portType
+            } else {
+                currentOutput = wasPluggedIn ? portDescription.portType : previousOutput
+            }
+        }
+        return nil
+    }
 
 }
 

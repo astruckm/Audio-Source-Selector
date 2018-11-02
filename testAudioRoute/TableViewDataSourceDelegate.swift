@@ -28,6 +28,10 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
         return 3
     }
     
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 50
+    }
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
         case 0:
@@ -41,23 +45,25 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
         }
     }
     
+    //TODO: Some dictionary with [AVAudioSession.Port: String] to populate cells
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         //TODO: this needs to match what is already in Modacity code
-        let metrodroneCell = tableView.dequeueReusableCell(withIdentifier: "metrodrone", for: indexPath)
-        guard let audioSourceCell = tableView.dequeueReusableCell(withIdentifier: "audioSource", for: indexPath) as? AudioSourceTableViewCell else { return UITableViewCell() }
-        
+                
         switch indexPath.section {
         case 0:
+            let metrodroneCell = tableView.dequeueReusableCell(withIdentifier: "metrodrone", for: indexPath)
             return metrodroneCell
         case 1:
-            audioSourceCell.audioSourceLabel.text = audioInputSources[indexPath.row].name
-            audioSourceCell.audioSourceLabel.isHighlighted = audioInputSources[indexPath.row].isInUse
-            print("is in use? \(audioInputSources[indexPath.row].isInUse)")
+            let audioSourceCell = tableView.dequeueReusableCell(withIdentifier: "audioSource", for: indexPath) as! AudioSourceTableViewCell
+            audioSourceCell.audioSourceLabel.text = String(Substring(audioInputSources[indexPath.row].rawValue))
+            audioSourceCell.audioSourceLabel.isHighlighted = currentInput == audioInputSources[indexPath.row]
+            print("is in use? \(audioSourceCell.audioSourceLabel.isHighlighted)")
             return audioSourceCell
         case 2:
-            audioSourceCell.audioSourceLabel.text = audioOutputSources[indexPath.row].name
-            audioSourceCell.audioSourceLabel.isHighlighted = audioOutputSources[indexPath.row].isInUse
-            print("is in use? \(audioInputSources[indexPath.row].isInUse)")
+            let audioSourceCell = tableView.dequeueReusableCell(withIdentifier: "audioSource", for: indexPath) as! AudioSourceTableViewCell
+            audioSourceCell.audioSourceLabel.text = String(Substring(audioOutputSources[indexPath.row].rawValue))
+            audioSourceCell.audioSourceLabel.isHighlighted = currentOutput == audioOutputSources[indexPath.row]
+            print("is in use? \(audioSourceCell.audioSourceLabel.isHighlighted)")
             return audioSourceCell
         default:
             print("unable to populate cells")
