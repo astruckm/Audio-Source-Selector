@@ -37,9 +37,17 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
         case 0:
             return 1
         case 1:
-            return audioInputSources.count
+            if let availableInputs = availableInputs {
+                return availableInputs.count
+            } else {
+                fallthrough
+            }
         case 2:
-            return audioOutputSources.count
+            if let currentOutputs = currentOutputs {
+                return currentOutputs.count
+            } else {
+                fallthrough
+            }
         default:
             return 3
         }
@@ -55,15 +63,19 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
             return metrodroneCell
         case 1:
             let audioSourceCell = tableView.dequeueReusableCell(withIdentifier: "audioSource", for: indexPath) as! AudioSourceTableViewCell
-            audioSourceCell.audioSourceLabel.text = String(Substring(audioInputSources[indexPath.row].rawValue))
-            audioSourceCell.audioSourceLabel.isHighlighted = currentInput == audioInputSources[indexPath.row]
-            print("is in use? \(audioSourceCell.audioSourceLabel.isHighlighted)")
+            if let availableInputs = availableInputs {
+                audioSourceCell.audioSourceLabel.text = availableInputs[indexPath.row].portName
+//                audioSourceCell.accessoryType = currentInput == availableInputs[indexPath.row].portType ? .checkmark : .none
+//                output.text += "\nis in use? \(audioSourceCell.accessoryType == .checkmark)\n"
+            }
             return audioSourceCell
         case 2:
             let audioSourceCell = tableView.dequeueReusableCell(withIdentifier: "audioSource", for: indexPath) as! AudioSourceTableViewCell
-            audioSourceCell.audioSourceLabel.text = String(Substring(audioOutputSources[indexPath.row].rawValue))
-            audioSourceCell.audioSourceLabel.isHighlighted = currentOutput == audioOutputSources[indexPath.row]
-            print("is in use? \(audioSourceCell.audioSourceLabel.isHighlighted)")
+            if let currentOutputs = currentOutputs {
+                audioSourceCell.audioSourceLabel.text = currentOutputs[indexPath.row].portName
+                audioSourceCell.accessoryType = currentOutput == currentOutputs[indexPath.row].portType ? .checkmark : .none
+                output.text += "\nis in use? \(audioSourceCell.accessoryType == .checkmark)\n"
+            }
             return audioSourceCell
         default:
             print("unable to populate cells")
