@@ -64,9 +64,10 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
         case 1:
             let audioSourceCell = tableView.dequeueReusableCell(withIdentifier: "audioSource", for: indexPath) as! AudioSourceTableViewCell
             if let availableInputs = availableInputs {
-                audioSourceCell.audioSourceLabel.text = availableInputs[indexPath.row].portName
-//                audioSourceCell.accessoryType = currentInput == availableInputs[indexPath.row].portType ? .checkmark : .none
-//                output.text += "\nis in use? \(audioSourceCell.accessoryType == .checkmark)\n"
+                audioSourceCell.audioSourceLabel.text =  availableInputs[indexPath.row].portName
+                audioSourceCell.accessoryType = currentInput == availableInputs[indexPath.row].portType ? .checkmark : .none
+                output.text += "\ncurrent route inputs: \(audioSession.currentRoute.inputs)\n"
+                
             }
             return audioSourceCell
         case 2:
@@ -74,7 +75,7 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
             if let currentOutputs = currentOutputs {
                 audioSourceCell.audioSourceLabel.text = currentOutputs[indexPath.row].portName
                 audioSourceCell.accessoryType = currentOutput == currentOutputs[indexPath.row].portType ? .checkmark : .none
-                output.text += "\nis in use? \(audioSourceCell.accessoryType == .checkmark)\n"
+//                output.text += "\nis in use? \(audioSourceCell.accessoryType == .checkmark)\n"
             }
             return audioSourceCell
         default:
@@ -82,6 +83,19 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
             return UITableViewCell()
         }
         
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if indexPath.section == 1 {
+            if let availableInputs = availableInputs {
+                do {
+                    try audioSession.setPreferredInput(availableInputs[indexPath.row])
+                    currentInput = availableInputs[indexPath.row].portType
+                } catch let error {
+                    output.text += "\n\(error.localizedDescription)\n"
+                }
+            }
+        }
     }
     
 }

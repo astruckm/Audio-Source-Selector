@@ -21,11 +21,23 @@ class ViewController: UIViewController, UITextViewDelegate {
     let audioSession = AVAudioSession.sharedInstance()
 
     var availableInputs: [AVAudioSessionPortDescription]? {
-        output.text += "\n availableInputs: \(String(describing: audioSession.availableInputs))\n"
+//        output.text += "\n availableInputs: \(String(describing: audioSession.availableInputs))\n"
         return audioSession.availableInputs
     }
+//    var availableInputDataSources: [AVAudioSessionDataSourceDescription]? {
+//        guard let availableInputs = availableInputs else { return nil }
+//        var dataDescriptions = [AVAudioSessionDataSourceDescription]()
+//        for availableInput in availableInputs {
+//            //add each dataSource of the input port if more than 1
+//            if let dataSources = availableInput.dataSources {
+//                dataSources.forEach({dataDescriptions.append($0)})
+//            }
+//        }
+//        return dataDescriptions
+//    }
+    
     var currentOutputs: [AVAudioSessionPortDescription]? {
-        output.text += "\n currentOutputs: \(audioSession.currentRoute.outputs)\n"
+//        output.text += "\n currentOutputs: \(audioSession.currentRoute.outputs)\n"
         return audioSession.currentRoute.outputs
     }
 
@@ -99,11 +111,7 @@ class ViewController: UIViewController, UITextViewDelegate {
             let newOutput = outputPortThatChanged(among: audioSession.currentRoute.outputs, wasPluggedIn: true)
             //TODO: if new device is input, append to input, if output append to output
             updateAudioSessionInfo(withNewInput: newInput, newOutput: newOutput)
-            
-            
             output.text += "\n\n" + audioSession.currentRoute.description + "\n\n"
-
-            
         case .oldDeviceUnavailable:
             let newInput = inputPortThatChanged(among: audioSession.currentRoute.inputs, wasPluggedIn: false)
             let newOutput = outputPortThatChanged(among: audioSession.currentRoute.outputs, wasPluggedIn: false)
@@ -111,8 +119,8 @@ class ViewController: UIViewController, UITextViewDelegate {
         case .routeConfigurationChange:
             output.text += "\nRoute change reason is: route configuration change"
         //TODO: handle other possible reasons
-        default: ()
-        output.text += "unknown reason"
+        default:
+        print("unknown reason")
         }
         
         audioSourcesTableView.reloadData()
@@ -126,6 +134,7 @@ class ViewController: UIViewController, UITextViewDelegate {
                 currentInput = portDescription.portType
                 return portDescription.portType
             } else {
+                //Set currentInput to new device if plugged in, previous one if unplugged
                 currentInput = wasPluggedIn ? portDescription.portType : previousInput
             }
         }
@@ -139,6 +148,7 @@ class ViewController: UIViewController, UITextViewDelegate {
                 currentOutput = portDescription.portType
                 return portDescription.portType
             } else {
+                //Set currentInput to new device if plugged in, previous one if unplugged
                 currentOutput = wasPluggedIn ? portDescription.portType : previousOutput
             }
         }
