@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		720F678C218A749B00BF8719 /* AudioSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 720F678B218A749B00BF8719 /* AudioSource.swift */; };
+		7210E22E2196AFF4002CBB4B /* VolumeTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7210E22D2196AFF4002CBB4B /* VolumeTableViewCell.swift */; };
 		721C68AF2187A11F00EFDCFC /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721C68AE2187A11F00EFDCFC /* AppDelegate.swift */; };
 		721C68B12187A11F00EFDCFC /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721C68B02187A11F00EFDCFC /* ViewController.swift */; };
 		721C68B42187A11F00EFDCFC /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 721C68B22187A11F00EFDCFC /* Main.storyboard */; };
@@ -15,10 +16,12 @@
 		721C68B92187A12E00EFDCFC /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 721C68B72187A12E00EFDCFC /* LaunchScreen.storyboard */; };
 		722567462189795E006B3FF7 /* TableViewDataSourceDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 722567452189795E006B3FF7 /* TableViewDataSourceDelegate.swift */; };
 		7225674821899DBF006B3FF7 /* AudioSourceTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7225674721899DBF006B3FF7 /* AudioSourceTableViewCell.swift */; };
+		7242D88221955FEF00894DA9 /* 440Hz_44100Hz_16bit_05sec.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 7242D88121955FEF00894DA9 /* 440Hz_44100Hz_16bit_05sec.mp3 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		720F678B218A749B00BF8719 /* AudioSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSource.swift; sourceTree = "<group>"; };
+		7210E22D2196AFF4002CBB4B /* VolumeTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeTableViewCell.swift; sourceTree = "<group>"; };
 		721C68AB2187A11F00EFDCFC /* testAudioRoute.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = testAudioRoute.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		721C68AE2187A11F00EFDCFC /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		721C68B02187A11F00EFDCFC /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -28,6 +31,7 @@
 		721C68BA2187A12E00EFDCFC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		722567452189795E006B3FF7 /* TableViewDataSourceDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableViewDataSourceDelegate.swift; sourceTree = "<group>"; };
 		7225674721899DBF006B3FF7 /* AudioSourceTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSourceTableViewCell.swift; sourceTree = "<group>"; };
+		7242D88121955FEF00894DA9 /* 440Hz_44100Hz_16bit_05sec.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = 440Hz_44100Hz_16bit_05sec.mp3; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -66,11 +70,21 @@
 				722567452189795E006B3FF7 /* TableViewDataSourceDelegate.swift */,
 				721C68B22187A11F00EFDCFC /* Main.storyboard */,
 				7225674721899DBF006B3FF7 /* AudioSourceTableViewCell.swift */,
+				7210E22D2196AFF4002CBB4B /* VolumeTableViewCell.swift */,
+				7242D8832195601100894DA9 /* Sounds */,
 				721C68B52187A12E00EFDCFC /* Assets.xcassets */,
 				721C68B72187A12E00EFDCFC /* LaunchScreen.storyboard */,
 				721C68BA2187A12E00EFDCFC /* Info.plist */,
 			);
 			path = testAudioRoute;
+			sourceTree = "<group>";
+		};
+		7242D8832195601100894DA9 /* Sounds */ = {
+			isa = PBXGroup;
+			children = (
+				7242D88121955FEF00894DA9 /* 440Hz_44100Hz_16bit_05sec.mp3 */,
+			);
+			path = Sounds;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -139,6 +153,7 @@
 				721C68B92187A12E00EFDCFC /* LaunchScreen.storyboard in Resources */,
 				721C68B62187A12E00EFDCFC /* Assets.xcassets in Resources */,
 				721C68B42187A11F00EFDCFC /* Main.storyboard in Resources */,
+				7242D88221955FEF00894DA9 /* 440Hz_44100Hz_16bit_05sec.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -154,6 +169,7 @@
 				722567462189795E006B3FF7 /* TableViewDataSourceDelegate.swift in Sources */,
 				7225674821899DBF006B3FF7 /* AudioSourceTableViewCell.swift in Sources */,
 				720F678C218A749B00BF8719 /* AudioSource.swift in Sources */,
+				7210E22E2196AFF4002CBB4B /* VolumeTableViewCell.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

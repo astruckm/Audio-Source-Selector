@@ -17,15 +17,16 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
             return "AUDIO INPUT SOURCE"
         case 2:
             return "AUDIO OUTPUT"
+        case 3:
+            return "VOLUME"
         default:
-            print("Error populating section titles")
             return ""
         }
 
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
-        return 3
+        return 4
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -48,6 +49,8 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
             } else {
                 fallthrough
             }
+        case 3:
+            return 1
         default:
             return 3
         }
@@ -75,9 +78,11 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
             if let currentOutputs = currentOutputs {
                 audioSourceCell.audioSourceLabel.text = currentOutputs[indexPath.row].portName
                 audioSourceCell.accessoryType = currentOutput == currentOutputs[indexPath.row].portType ? .checkmark : .none
-//                output.text += "\nis in use? \(audioSourceCell.accessoryType == .checkmark)\n"
             }
             return audioSourceCell
+        case 3:
+            let volumeCell = tableView.dequeueReusableCell(withIdentifier: "volumeBar", for: indexPath)
+            return volumeCell
         default:
             print("unable to populate cells")
             return UITableViewCell()
@@ -91,6 +96,7 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
                 do {
                     try audioSession.setPreferredInput(availableInputs[indexPath.row])
                     currentInput = availableInputs[indexPath.row].portType
+                    tableView.reloadData()
                 } catch let error {
                     output.text += "\n\(error.localizedDescription)\n"
                 }

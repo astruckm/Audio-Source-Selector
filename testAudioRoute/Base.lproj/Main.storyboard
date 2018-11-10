@@ -17,18 +17,21 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="ygD-NC-t6g" userLabel="ConsoleOutput">
+                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" textAlignment="natural" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ygD-NC-t6g" userLabel="ConsoleOutput">
                                 <rect key="frame" x="16" y="347" width="343" height="300"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="300" id="ZLr-Sf-oee"/>
+                                    <constraint firstAttribute="height" relation="lessThanOrEqual" constant="300" id="ZLr-Sf-oee"/>
                                 </constraints>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                             </textView>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="C29-vO-XIQ">
-                                <rect key="frame" x="16" y="46" width="343" height="263"/>
+                                <rect key="frame" x="16" y="46" width="343" height="243"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" relation="lessThanOrEqual" constant="243" id="2xf-pd-yFo"/>
+                                </constraints>
                                 <prototypes>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="metrodrone" id="XLV-hT-zWk" customClass="AudioSourceTableViewCell" customModule="testAudioRoute" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="28" width="343" height="44"/>
@@ -41,7 +44,7 @@
                                                     <rect key="frame" x="15" y="11.5" width="126" height="21"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
-                                                    <color key="highlightedColor" red="0.99942404029999998" green="0.8817125361" blue="0.19075520830000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                    <nil key="highlightedColor"/>
                                                 </label>
                                             </subviews>
                                             <constraints>
@@ -65,7 +68,7 @@
                                                     <rect key="frame" x="15" y="11.5" width="102.5" height="21"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
-                                                    <color key="highlightedColor" red="0.99942404029999998" green="0.8817125361" blue="0.19075520830000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                    <nil key="highlightedColor"/>
                                                 </label>
                                             </subviews>
                                             <constraints>
@@ -78,20 +81,55 @@
                                             <outlet property="audioSourceLabel" destination="ZTQ-gY-l1i" id="MeH-rh-rzg"/>
                                         </connections>
                                     </tableViewCell>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="volumeBar" id="6Ot-Zf-HP3" customClass="VolumeTableViewCell" customModule="testAudioRoute" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="116" width="343" height="44"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="6Ot-Zf-HP3" id="gFd-NB-xUA">
+                                            <rect key="frame" x="0.0" y="0.0" width="343" height="43.5"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="YuE-gV-Qug">
+                                                    <rect key="frame" x="0.0" y="0.0" width="343" height="43.5"/>
+                                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                </view>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="YuE-gV-Qug" firstAttribute="top" secondItem="gFd-NB-xUA" secondAttribute="top" id="A6N-OG-Dst"/>
+                                                <constraint firstAttribute="trailing" secondItem="YuE-gV-Qug" secondAttribute="trailing" id="Azg-0z-7Ed"/>
+                                                <constraint firstItem="YuE-gV-Qug" firstAttribute="leading" secondItem="gFd-NB-xUA" secondAttribute="leading" id="gTA-qD-ely"/>
+                                                <constraint firstAttribute="bottom" secondItem="YuE-gV-Qug" secondAttribute="bottom" id="lPJ-FR-OgG"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                        <connections>
+                                            <outlet property="wrapperView" destination="YuE-gV-Qug" id="mJU-ih-hYx"/>
+                                        </connections>
+                                    </tableViewCell>
                                 </prototypes>
                                 <connections>
                                     <outlet property="dataSource" destination="BYZ-38-t0r" id="NCJ-Y5-Lfu"/>
                                     <outlet property="delegate" destination="BYZ-38-t0r" id="Jsc-MD-mcQ"/>
                                 </connections>
                             </tableView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="lub-R9-773">
+                                <rect key="frame" x="154" y="297" width="67" height="50"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" relation="lessThanOrEqual" constant="50" id="tqx-qo-LVj"/>
+                                </constraints>
+                                <state key="normal" title="Test Tone"/>
+                                <connections>
+                                    <action selector="testTone:" destination="BYZ-38-t0r" eventType="touchUpInside" id="6qD-ET-1Ch"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstItem="ygD-NC-t6g" firstAttribute="top" secondItem="C29-vO-XIQ" secondAttribute="bottom" constant="38" id="8II-Wz-LLM"/>
+                            <constraint firstItem="lub-R9-773" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="5Jc-R6-NqD"/>
                             <constraint firstItem="C29-vO-XIQ" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="16" id="EHr-Mj-fLb"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="ygD-NC-t6g" secondAttribute="trailing" constant="16" id="Qty-ah-TVA"/>
                             <constraint firstItem="C29-vO-XIQ" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="26" id="ReG-5a-waM"/>
                             <constraint firstItem="ygD-NC-t6g" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="16" id="S7V-qj-mId"/>
+                            <constraint firstItem="ygD-NC-t6g" firstAttribute="top" secondItem="lub-R9-773" secondAttribute="bottom" id="T8z-cS-Uwg"/>
+                            <constraint firstItem="lub-R9-773" firstAttribute="top" secondItem="C29-vO-XIQ" secondAttribute="bottom" constant="8" id="XXc-Eq-U4g"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="C29-vO-XIQ" secondAttribute="trailing" constant="16" id="hzF-Ml-p48"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="ygD-NC-t6g" secondAttribute="bottom" constant="20" id="pSl-vi-XYp"/>
                         </constraints>
