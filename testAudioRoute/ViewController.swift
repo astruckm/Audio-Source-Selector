@@ -26,17 +26,6 @@ class ViewController: UIViewController, UITextViewDelegate {
     var availableInputs: [AVAudioSessionPortDescription]? {
         return audioSession.availableInputs
     }
-//    var availableInputDataSources: [AVAudioSessionDataSourceDescription]? {
-//        guard let availableInputs = availableInputs else { return nil }
-//        var dataDescriptions = [AVAudioSessionDataSourceDescription]()
-//        for availableInput in availableInputs {
-//            //add each dataSource of the input port if more than 1
-//            if let dataSources = availableInput.dataSources {
-//                dataSources.forEach({dataDescriptions.append($0)})
-//            }
-//        }
-//        return dataDescriptions
-//    }
     
     var currentOutputs: [AVAudioSessionPortDescription]? {
         return audioSession.currentRoute.outputs

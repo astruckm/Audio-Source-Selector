@@ -9,21 +9,27 @@
 import Foundation
 import AVFoundation
 
-//TODO: is this necessary--use AVAudioSession.CategoryOptions instead ?
-enum PossibleAudioSourceName {
-    case deviceSpeakers
-    case headphones
-    case bluetoothHeadset
-}
 
 //TODO: is this necessary--use AVAudioSessionRouteDescription or AVAudioSessionPortDescription
-struct AudioSource: Equatable {
+struct PortInfo: Equatable {
     let port: AVAudioSessionPortDescription
     var isInUse: Bool
+    let numDataSources: Int
     
     init(port: AVAudioSessionPortDescription, isInUse: Bool = false) {
         self.port = port
         self.isInUse = isInUse
+        self.numDataSources = port.dataSources?.count ?? 0
+    }
+}
+
+struct AudioSource {
+    let portInfo: PortInfo
+    let dataSource: AVAudioSessionDataSourceDescription
+    
+    init(portInfo: PortInfo, dataSource: AVAudioSessionDataSourceDescription) {
+        self.portInfo = portInfo
+        self.dataSource = dataSource
     }
     
 }

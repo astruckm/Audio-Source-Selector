@@ -71,6 +71,12 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
                 audioSourceCell.accessoryType = currentInput == availableInputs[indexPath.row].portType ? .checkmark : .none
                 output.text += "\ncurrent route inputs: \(audioSession.currentRoute.inputs)\n"
                 
+                if let dataSources = availableInputs[indexPath.row].dataSources {
+                    for dataSource in dataSources {
+                        output.text += availableInputs[indexPath.row].portName + dataSource.dataSourceName +  "\n"
+                    }
+                }
+                
             }
             return audioSourceCell
         case 2:
