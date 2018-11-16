@@ -10,24 +10,21 @@ import Foundation
 import AVFoundation
 
 
-//TODO: is this necessary--use AVAudioSessionRouteDescription or AVAudioSessionPortDescription
 struct PortInfo: Equatable {
     let port: AVAudioSessionPortDescription
-    var isInUse: Bool
     let numDataSources: Int
     
-    init(port: AVAudioSessionPortDescription, isInUse: Bool = false) {
+    init(port: AVAudioSessionPortDescription) {
         self.port = port
-        self.isInUse = isInUse
         self.numDataSources = port.dataSources?.count ?? 0
     }
 }
 
 struct AudioSource {
     let portInfo: PortInfo
-    let dataSource: AVAudioSessionDataSourceDescription
+    let dataSource: AVAudioSessionDataSourceDescription?
     
-    init(portInfo: PortInfo, dataSource: AVAudioSessionDataSourceDescription) {
+    init(portInfo: PortInfo, dataSource: AVAudioSessionDataSourceDescription?) {
         self.portInfo = portInfo
         self.dataSource = dataSource
     }

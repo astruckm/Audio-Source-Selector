@@ -23,17 +23,28 @@ class ViewController: UIViewController, UITextViewDelegate {
     var audioPlayer: AVAudioPlayer?
     var testToneShouldPlay = true
 
+    
     var availableInputs: [AVAudioSessionPortDescription]? {
         return audioSession.availableInputs
     }
-    
     var currentOutputs: [AVAudioSessionPortDescription]? {
         return audioSession.currentRoute.outputs
     }
 
     //Custom data sources
-    var audioInputSources = [AVAudioSession.Port]()
-    var audioOutputSources = [AVAudioSession.Port]()
+    var audioInputSources = [AudioSource]()
+    var audioInputPorts: Set<AVAudioSession.Port> {
+        let inputPorts = audioInputSources.map{$0.portInfo.port.portType}
+        return Set(inputPorts)
+    }
+    var audioOutputSources = [AudioSource]()
+    var audioOutputPorts: Set<AVAudioSession.Port> {
+        let outputPorts =  audioOutputSources.map({$0.portInfo.port.portType})
+        return Set(outputPorts)
+    }
+    
+    
+    //In-use audio sources
     var currentInput: AVAudioSession.Port? {
         didSet {
             previousInput = oldValue
@@ -45,7 +56,6 @@ class ViewController: UIViewController, UITextViewDelegate {
             previousOutput = oldValue
             output.text += "\ncurrentOutput is: \(String(describing: currentOutput)), previousOutput is: \(String(describing: previousOutput))\n"
         }
-
     }
     var previousInput: AVAudioSession.Port?
     var previousOutput: AVAudioSession.Port?
@@ -69,10 +79,12 @@ class ViewController: UIViewController, UITextViewDelegate {
         previousInput = nil
         previousOutput = nil
         for input in audioSession.currentRoute.inputs {
-            audioInputSources.append(input.portType)
+            let portInfo = PortInfo(port: input)
+            audioInputSources.append(AudioSource(portInfo: portInfo, dataSource: input.preferredDataSource))
         }
         for output in audioSession.currentRoute.outputs {
-            audioOutputSources.append(output.portType)
+            let portInfo = PortInfo(port: output)
+            audioInputSources.append(AudioSource(portInfo: portInfo, dataSource: output.preferredDataSource))
         }
         
         NotificationCenter.default.post(name: AVAudioSession.routeChangeNotification, object: nil)
@@ -102,7 +114,6 @@ class ViewController: UIViewController, UITextViewDelegate {
         case .newDeviceAvailable:
             let newInput = inputPortThatChanged(among: audioSession.currentRoute.inputs, wasPluggedIn: true)
             let newOutput = outputPortThatChanged(among: audioSession.currentRoute.outputs, wasPluggedIn: true)
-            //TODO: if new device is input, append to input, if output append to output
             updateAudioSessionInfo(withNewInput: newInput, newOutput: newOutput)
             output.text += "\n\n" + audioSession.currentRoute.description + "\n\n"
         case .oldDeviceUnavailable:
@@ -111,7 +122,7 @@ class ViewController: UIViewController, UITextViewDelegate {
             updateAudioSessionInfo(withNewInput: newInput, newOutput: newOutput)
         case .routeConfigurationChange:
             output.text += "\nRoute change reason is: route configuration change"
-        //TODO: handle other possible reasons
+        //TODO: handle other possible reasons?
         default:
         print("unknown reason")
         }
@@ -122,7 +133,8 @@ class ViewController: UIViewController, UITextViewDelegate {
     
     private func inputPortThatChanged(among portDescriptions: [AVAudioSessionPortDescription], wasPluggedIn: Bool) ->  AVAudioSession.Port? {
         for portDescription in portDescriptions {
-            if !audioInputSources.contains(portDescription.portType) {
+            let ports = audioInputSources.map{$0.portInfo.port.portType}
+            if !ports.contains(portDescription.portType) {
                 //Is a totally new input source
                 currentInput = portDescription.portType
                 return portDescription.portType
@@ -136,7 +148,7 @@ class ViewController: UIViewController, UITextViewDelegate {
     
     private func outputPortThatChanged(among portDescriptions: [AVAudioSessionPortDescription], wasPluggedIn: Bool) ->  AVAudioSession.Port? {
         for portDescription in portDescriptions {
-            if !audioOutputSources.contains(portDescription.portType) {
+            if !audioOutputPorts.contains(portDescription.portType) {
                 //Is a totally new output source
                 currentOutput = portDescription.portType
                 return portDescription.portType
@@ -182,8 +194,8 @@ class ViewController: UIViewController, UITextViewDelegate {
     //Adds non-duplicate input source
     private func addInputAudioSource(withPort port: AVAudioSession.Port, isInUse: Bool = false) {
 //        let audioSource = AudioSource(port: port, isInUse: isInUse)
-        let isAlreadyAdded = audioInputSources.contains(port)
-        if isAlreadyAdded == false {
+        let isAlreadyAdded = audioInputPorts.contains(port)
+        if !isAlreadyAdded {
             audioInputSources.append(port)
         }
     }
@@ -191,8 +203,8 @@ class ViewController: UIViewController, UITextViewDelegate {
     //Adds non-duplicate output source
     private func addOutputAudioSource(withPort port: AVAudioSession.Port, isInUse: Bool = false) {
 //        let audioSource = AudioSource(port: port, isInUse: isInUse)
-        let isAlreadyAdded = audioOutputSources.contains(port)
-        if isAlreadyAdded == false {
+        let isAlreadyAdded = audioOutputPorts.contains(port)
+        if !isAlreadyAdded {
             audioOutputSources.append(port)
         }
     }
