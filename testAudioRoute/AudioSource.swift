@@ -11,16 +11,16 @@ import AVFoundation
 
 
 struct PortInfo: Equatable {
-    let port: AVAudioSessionPortDescription
+    let description: AVAudioSessionPortDescription
     let numDataSources: Int
     
     init(port: AVAudioSessionPortDescription) {
-        self.port = port
+        self.description = port
         self.numDataSources = port.dataSources?.count ?? 0
     }
 }
 
-struct AudioSource {
+struct AudioSource: Equatable {
     let portInfo: PortInfo
     let dataSource: AVAudioSessionDataSourceDescription?
     
@@ -28,6 +28,7 @@ struct AudioSource {
         self.portInfo = portInfo
         self.dataSource = dataSource
     }
+    
     
 }
 

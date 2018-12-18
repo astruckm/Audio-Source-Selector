@@ -12,12 +12,10 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         switch section {
         case 0:
-            return "METRODRONE"
-        case 1:
             return "AUDIO INPUT SOURCE"
-        case 2:
+        case 1:
             return "AUDIO OUTPUT"
-        case 3:
+        case 2:
             return "VOLUME"
         default:
             return ""
@@ -26,7 +24,7 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
-        return 4
+        return 3
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -36,20 +34,16 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
         case 0:
-            return 1
-        case 1:
             if let availableInputs = availableInputs {
                 return availableInputs.count
-            } else {
-                fallthrough
             }
-        case 2:
+            fallthrough
+        case 1:
             if let currentOutputs = currentOutputs {
                 return currentOutputs.count
-            } else {
-                fallthrough
             }
-        case 3:
+            fallthrough
+        case 2:
             return 1
         default:
             return 3
@@ -62,9 +56,6 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
                 
         switch indexPath.section {
         case 0:
-            let metrodroneCell = tableView.dequeueReusableCell(withIdentifier: "metrodrone", for: indexPath)
-            return metrodroneCell
-        case 1:
             let audioSourceCell = tableView.dequeueReusableCell(withIdentifier: "audioSource", for: indexPath) as! AudioSourceTableViewCell
             if let availableInputs = availableInputs {
                 audioSourceCell.audioSourceLabel.text =  availableInputs[indexPath.row].portName
@@ -79,14 +70,14 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
                 
             }
             return audioSourceCell
-        case 2:
+        case 1:
             let audioSourceCell = tableView.dequeueReusableCell(withIdentifier: "audioSource", for: indexPath) as! AudioSourceTableViewCell
             if let currentOutputs = currentOutputs {
                 audioSourceCell.audioSourceLabel.text = currentOutputs[indexPath.row].portName
                 audioSourceCell.accessoryType = currentOutput == currentOutputs[indexPath.row].portType ? .checkmark : .none
             }
             return audioSourceCell
-        case 3:
+        case 2:
             let volumeCell = tableView.dequeueReusableCell(withIdentifier: "volumeBar", for: indexPath)
             return volumeCell
         default:
@@ -97,7 +88,7 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if indexPath.section == 1 {
+        if indexPath.section == 0 {
             if let availableInputs = availableInputs {
                 do {
                     try audioSession.setPreferredInput(availableInputs[indexPath.row])
