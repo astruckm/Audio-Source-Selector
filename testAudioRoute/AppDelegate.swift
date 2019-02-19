@@ -2,8 +2,8 @@
 //  AppDelegate.swift
 //  testAudioRoute
 //
-//  Created by ASM on 10/29/18.
-//  Copyright © 2018 POTO. All rights reserved.
+//  Created by Andrew Struck-Marcell on 10/30/18.
+//  MIT License.
 //
 
 import UIKit
@@ -38,6 +38,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
+        let vc = ViewController()
+        vc.output.text += "Table view is: " + vc.audioSourcesTableView.description
+        vc.output.text += "# of Input audio sources: " + String(vc.inputAudioSources.count)
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
 

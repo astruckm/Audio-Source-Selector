@@ -2,8 +2,8 @@
 //  VolumeTableViewCell.swift
 //  testAudioRoute
 //
-//  Created by ASM on 11/9/18.
-//  Copyright © 2018 POTO. All rights reserved.
+//  Created by Andrew Struck-Marcell on 10/30/18.
+//  MIT License.
 //
 
 import UIKit

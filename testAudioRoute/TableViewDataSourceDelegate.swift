@@ -2,8 +2,8 @@
 //  TableViewDataSourceDelegate.swift
 //  testAudioRoute
 //
-//  Created by ASM on 10/30/18.
-//  Copyright © 2018 POTO. All rights reserved.
+//  Created by Andrew Struck-Marcell on 10/30/18.
+//  MIT License.
 //
 
 import UIKit
@@ -15,8 +15,8 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
             return "AUDIO INPUT SOURCE"
         case 1:
             return "AUDIO OUTPUT"
-        case 2:
-            return "VOLUME"
+//        case 2:
+//            return "VOLUME"
         default:
             return ""
         }
@@ -34,52 +34,68 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
         case 0:
-            if let availableInputs = availableInputs {
-                return availableInputs.count
+            if !inputAudioSources.isEmpty {
+                return inputAudioSources.count
             }
             fallthrough
         case 1:
-            if let currentOutputs = currentOutputs {
-                return currentOutputs.count
+            if !outputAudioSources.isEmpty {
+                return outputAudioSources.count
             }
             fallthrough
-        case 2:
-            return 1
+//        case 2:
+//            return 1
         default:
             return 3
         }
     }
     
-    //TODO: Some dictionary with [AVAudioSession.Port: String] to populate cells
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        //TODO: this needs to match what is already in Modacity code
-                
         switch indexPath.section {
         case 0:
-            let audioSourceCell = tableView.dequeueReusableCell(withIdentifier: "audioSource", for: indexPath) as! AudioSourceTableViewCell
-            if let availableInputs = availableInputs {
-                audioSourceCell.audioSourceLabel.text =  availableInputs[indexPath.row].portName
-                audioSourceCell.accessoryType = currentInput == availableInputs[indexPath.row].portType ? .checkmark : .none
-                output.text += "\ncurrent route inputs: \(audioSession.currentRoute.inputs)\n"
-                
-                if let dataSources = availableInputs[indexPath.row].dataSources {
-                    for dataSource in dataSources {
-                        output.text += availableInputs[indexPath.row].portName + dataSource.dataSourceName +  "\n"
-                    }
-                }
-                
+            guard audioSession.availableInputs != nil else { return UITableViewCell() }
+            guard indexPath.row <= (inputAudioSources.count - 1) else {
+                output.text += "\ncellForRowAt not in sync with input audio sources"
+                return UITableViewCell()
             }
+            
+            let audioSourceCell = tableView.dequeueReusableCell(withIdentifier: "audioSource", for: indexPath) as! AudioSourceTableViewCell
+            let audioSource = inputAudioSources[indexPath.row]
+            if let audioSourceDataSource = audioSource.dataSource {
+                //If cell is a data source, label it by port name AND data source name
+                audioSourceCell.audioSourceLabel.text = audioSource.portInfo.description.portName + " " + audioSourceDataSource.dataSourceName
+            } else {
+                audioSourceCell.audioSourceLabel.text = audioSource.portInfo.description.portName
+            }
+            if let currentInput = currentInput {
+                audioSourceCell.accessoryType = currentInput == audioSource ? .checkmark : .none
+            }
+            
+            output.text += "\nThere are \(inputAudioSources.count) current inputs\n"
             return audioSourceCell
         case 1:
-            let audioSourceCell = tableView.dequeueReusableCell(withIdentifier: "audioSource", for: indexPath) as! AudioSourceTableViewCell
-            if let currentOutputs = currentOutputs {
-                audioSourceCell.audioSourceLabel.text = currentOutputs[indexPath.row].portName
-                audioSourceCell.accessoryType = currentOutput == currentOutputs[indexPath.row].portType ? .checkmark : .none
+            guard indexPath.row <= (outputAudioSources.count - 1) else {
+                output.text += "\ncellForRowAt not in sync with output audio sources"
+                return UITableViewCell()
             }
+
+            let audioSourceCell = tableView.dequeueReusableCell(withIdentifier: "audioSource", for: indexPath) as! AudioSourceTableViewCell
+            let audioSource = outputAudioSources[indexPath.row]
+            if let audioSourceDataSource = audioSource.dataSource {
+                //If cell is a data source, label it by port name AND data source name
+                audioSourceCell.audioSourceLabel.text = audioSource.portInfo.description.portName + " " + audioSourceDataSource.dataSourceName
+            } else {
+                audioSourceCell.audioSourceLabel.text = audioSource.portInfo.description.portName
+            }
+            if let currentOutput = currentOutput {
+                audioSourceCell.accessoryType = currentOutput == audioSource ? .checkmark : .none
+            }
+
+            output.text += "\nThere are \(outputAudioSources.count) current outputs\n"
             return audioSourceCell
-        case 2:
-            let volumeCell = tableView.dequeueReusableCell(withIdentifier: "volumeBar", for: indexPath)
-            return volumeCell
+//        case 2:
+//            let volumeCell = tableView.dequeueReusableCell(withIdentifier: "volumeBar", for: indexPath)
+//            return volumeCell
         default:
             print("unable to populate cells")
             return UITableViewCell()
@@ -88,16 +104,28 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if indexPath.section == 0 {
-            if let availableInputs = availableInputs {
-                do {
-                    try audioSession.setPreferredInput(availableInputs[indexPath.row])
-                    currentInput = availableInputs[indexPath.row].portType
-                    tableView.reloadData()
-                } catch let error {
-                    output.text += "\n\(error.localizedDescription)\n"
-                }
+        if indexPath.section == 0 && !inputAudioSources.isEmpty {
+            guard audioSession.availableInputs != nil else { return }
+            guard indexPath.row <= (inputAudioSources.count - 1) else { return }
+            let selectedAudioSource = inputAudioSources[indexPath.row]
+            setAudioSource(selectedAudioSource)
+        } else if indexPath.section == 1 && !outputAudioSources.isEmpty {
+            guard indexPath.row <= (outputAudioSources.count - 1) else { return }
+            let selectedAudioSource = outputAudioSources[indexPath.row]
+            setAudioSource(selectedAudioSource)
+        }
+        tableView.reloadData()
+    }
+    
+    private func setAudioSource(_ audioSource: AudioSource) {
+        do {
+            try audioSession.setPreferredInput(audioSource.portInfo.description)
+            currentInput = audioSource
+            if let dataSource = audioSource.dataSource {
+                try audioSession.preferredInput?.setPreferredDataSource(dataSource)
             }
+        } catch let error {
+            output.text += "\n\(error.localizedDescription)\n"
         }
     }
     

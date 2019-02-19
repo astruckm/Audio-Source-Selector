@@ -2,8 +2,8 @@
 //  AudioSource.swift
 //  testAudioRoute
 //
-//  Created by ASM on 10/31/18.
-//  Copyright © 2018 POTO. All rights reserved.
+//  Created by Andrew Struck-Marcell on 10/30/18.
+//  MIT License.
 //
 
 import Foundation
@@ -18,6 +18,10 @@ struct PortInfo: Equatable {
         self.description = port
         self.numDataSources = port.dataSources?.count ?? 0
     }
+    
+    static func ==(lhs: PortInfo, rhs: PortInfo) -> Bool {
+        return lhs.description.portType == rhs.description.portType && lhs.numDataSources == rhs.numDataSources
+    }
 }
 
 struct AudioSource: Equatable {
@@ -29,7 +33,16 @@ struct AudioSource: Equatable {
         self.dataSource = dataSource
     }
     
-    
+    static func ==(lhs: AudioSource, rhs: AudioSource) -> Bool {
+        switch (lhs.dataSource == nil, rhs.dataSource == nil) {
+        case (true, true):
+            return lhs.portInfo == rhs.portInfo
+        case (false, false):
+            return lhs.portInfo == rhs.portInfo && lhs.dataSource!.dataSourceID == rhs.dataSource!.dataSourceID && lhs.dataSource!.dataSourceName == rhs.dataSource!.dataSourceName
+        default:
+            return false
+        }
+    }
 }
 
 

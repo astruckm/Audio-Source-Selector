@@ -2,8 +2,8 @@
 //  AudioSourceTableViewCell.swift
 //  testAudioRoute
 //
-//  Created by ASM on 10/31/18.
-//  Copyright © 2018 POTO. All rights reserved.
+//  Created by Andrew Struck-Marcell on 10/30/18.
+//  MIT License.
 //
 
 import UIKit
