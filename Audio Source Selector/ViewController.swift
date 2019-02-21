@@ -1,6 +1,6 @@
 //
 //  ViewController.swift
-//  testAudioRoute
+//  Audio Source Selector
 //
 //  Created by Andrew Struck-Marcell on 10/30/18.
 //  MIT License.
@@ -12,8 +12,6 @@ import MediaPlayer
 
 //TODO: The three default device inputs (3 on the iPhone) 
 
-//Use AVAudioSessionPort type only
-//Use currentInput to determine selected cell
 class ViewController: UIViewController, UITextViewDelegate {
     @IBOutlet weak var output: UITextView!
     @IBOutlet weak var audioSourcesTableView: UITableView!
@@ -25,7 +23,6 @@ class ViewController: UIViewController, UITextViewDelegate {
     var audioPlayer: AVAudioPlayer?
     var testToneShouldPlay = true
 
-    
     var currentOutputs: [AVAudioSessionPortDescription]? {
         return audioSession.currentRoute.outputs
     }
@@ -129,11 +126,10 @@ class ViewController: UIViewController, UITextViewDelegate {
             updateAudioSessionInfo(withNewInput: newInput, newOutput: newOutput)
         case .routeConfigurationChange:
             output.text += "\nRoute change reason is: route configuration change"
-        //Handle other possible reasons?
+        //TODO: Handle other possible reasons?
         default:
         print("unknown reason")
         }
-        //TODO: some func that calls audioSession.setPreferredInput if input needs to change, and for some reason, it won't change automatically (is that necessary & possible for output as well?)
     }
     
     
@@ -162,9 +158,6 @@ class ViewController: UIViewController, UITextViewDelegate {
         }
         testToneShouldPlay.toggle()
     }
-    
-    
-    
     
     
     //MARK: Methods
@@ -221,16 +214,7 @@ class ViewController: UIViewController, UITextViewDelegate {
         output.text += "\nconvertedAudioSources: \(convertedAudioSources)\n"
         return convertedAudioSources
     }
-    
-    //is this one necessary?
-    private func getDataSourceNames(_ dataSource: [AVAudioSessionDataSourceDescription]?) -> [String]? {
-        guard let descriptionFields = dataSource else { return nil }
-        let dataSourceNames = descriptionFields.map { $0.dataSourceName }
-        return dataSourceNames
-    }
-
-    
-    
+        
 
 }
 

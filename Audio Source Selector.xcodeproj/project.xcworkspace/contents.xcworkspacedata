@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:/Users/asm/Developer/testAudioRoute/Audio Source isSelector.xcodeproj">
+      location = "self:/Users/asm/Developer/Audio Source Selector/Audio Source Selector.xcodeproj">
    </FileRef>
 </Workspace>
