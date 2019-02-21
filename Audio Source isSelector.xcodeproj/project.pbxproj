@@ -127,7 +127,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 721C68A62187A11F00EFDCFC /* Build configuration list for PBXProject "testAudioRoute" */;
+			buildConfigurationList = 721C68A62187A11F00EFDCFC /* Build configuration list for PBXProject "Audio Source isSelector" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -350,7 +350,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		721C68A62187A11F00EFDCFC /* Build configuration list for PBXProject "testAudioRoute" */ = {
+		721C68A62187A11F00EFDCFC /* Build configuration list for PBXProject "Audio Source isSelector" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				721C68BB2187A12E00EFDCFC /* Debug */,
