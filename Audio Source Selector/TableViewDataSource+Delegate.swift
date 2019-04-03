@@ -58,9 +58,9 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
                 output.text += "\ncellForRowAt not in sync with input audio sources"
                 return UITableViewCell()
             }
-            
             let audioSourceCell = tableView.dequeueReusableCell(withIdentifier: "audioSource", for: indexPath) as! AudioSourceTableViewCell
             let audioSource = inputAudioSources[indexPath.row]
+            
             if let audioSourceDataSource = audioSource.dataSource {
                 //If cell is a data source, label it by port name AND data source name
                 audioSourceCell.audioSourceLabel.text = audioSource.portInfo.description.portName + " " + audioSourceDataSource.dataSourceName
@@ -78,9 +78,9 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
                 output.text += "\ncellForRowAt not in sync with output audio sources"
                 return UITableViewCell()
             }
-
             let audioSourceCell = tableView.dequeueReusableCell(withIdentifier: "audioSource", for: indexPath) as! AudioSourceTableViewCell
             let audioSource = outputAudioSources[indexPath.row]
+            
             if let audioSourceDataSource = audioSource.dataSource {
                 //If cell is a data source, label it by port name AND data source name
                 audioSourceCell.audioSourceLabel.text = audioSource.portInfo.description.portName + " " + audioSourceDataSource.dataSourceName
@@ -103,6 +103,13 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
         
     }
     
+    //TODO: add this helper func to cellForRowAt
+    private func populateAudioSourceCell(_ audioSourceCell: AudioSourceTableViewCell, withAudioSource audioSource: AudioSource) -> AudioSourceTableViewCell {
+        
+        
+        return audioSourceCell
+    }
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if indexPath.section == 0 && !inputAudioSources.isEmpty {
             guard audioSession.availableInputs != nil else { return }
@@ -120,6 +127,7 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
     private func setAudioSource(_ audioSource: AudioSource) {
         do {
             try audioSession.setPreferredInput(audioSource.portInfo.description)
+            //TODO: set audioSession.setOutputDataSource() if you're dealing with an output AudioSource
             currentInput = audioSource
             if let dataSource = audioSource.dataSource {
                 try audioSession.preferredInput?.setPreferredDataSource(dataSource)

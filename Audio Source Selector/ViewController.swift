@@ -23,10 +23,6 @@ class ViewController: UIViewController, UITextViewDelegate {
     var audioPlayer: AVAudioPlayer?
     var testToneShouldPlay = true
 
-    var currentOutputs: [AVAudioSessionPortDescription]? {
-        return audioSession.currentRoute.outputs
-    }
-
     //Custom data sources
     var inputAudioSources = [AudioSource]()
     var audioInputPorts: Set<AVAudioSession.Port> {
@@ -67,10 +63,12 @@ class ViewController: UIViewController, UITextViewDelegate {
             print(error.localizedDescription)
         }
         
-        let initialInput = audioSession.currentRoute.inputs.first
-        currentInput = AudioSource(portInfo: PortInfo(port: initialInput!), dataSource: initialInput?.dataSources?.first)
-        let initialOutput = audioSession.currentRoute.outputs.first
-        currentOutput = AudioSource(portInfo: PortInfo(port: initialOutput!), dataSource: initialOutput?.dataSources?.first)
+        if let initialInput = audioSession.currentRoute.inputs.first {
+            currentInput = AudioSource(portInfo: PortInfo(port: initialInput), dataSource: initialInput.dataSources?.first)
+        }
+        if let initialOutput = audioSession.currentRoute.outputs.first {
+            currentOutput = AudioSource(portInfo: PortInfo(port: initialOutput), dataSource: initialOutput.dataSources?.first)
+        }
         previousInput = nil
         previousOutput = nil
         
@@ -102,8 +100,7 @@ class ViewController: UIViewController, UITextViewDelegate {
     }
     
     @IBAction func testTone(_ sender: UIButton) {
-        guard let testToneURL = Bundle.main.url(forResource: "440Hz_44100Hz_16bit_05sec.mp3", withExtension: nil) else {
-            return }
+        guard let testToneURL = Bundle.main.url(forResource: "440Hz_44100Hz_16bit_05sec.mp3", withExtension: nil) else { return }
         do {
             audioPlayer = try AVAudioPlayer(contentsOf: testToneURL)
             playOrStopTestTone(withAudioPlayer: audioPlayer)
@@ -134,24 +131,20 @@ class ViewController: UIViewController, UITextViewDelegate {
                 return
         }
         switch reason {
-        case .newDeviceAvailable:
-            let newInputPort = portThatChanged(among: audioSession.currentRoute.inputs, fromPrevious: audioInputPorts, wasPluggedIn: true)
-            let newOutputPort = portThatChanged(among: audioSession.currentRoute.outputs, fromPrevious: audioOutputPorts, wasPluggedIn: true)
+        case .newDeviceAvailable, .oldDeviceUnavailable:
+            let newInputPort = portThatChanged(among: audioSession.currentRoute.inputs)
+            let newOutputPort = portThatChanged(among: audioSession.currentRoute.outputs)
             //TODO: handle cases where new port is nil
             updateAudioSessionInfo(withNewInput: newInputPort, newOutput: newOutputPort)
-        case .oldDeviceUnavailable:
-            let newInput = portThatChanged(among: audioSession.currentRoute.inputs, fromPrevious: audioInputPorts, wasPluggedIn: false)
-            let newOutput = portThatChanged(among: audioSession.currentRoute.outputs, fromPrevious: audioOutputPorts, wasPluggedIn: false)
-            updateAudioSessionInfo(withNewInput: newInput, newOutput: newOutput)
         case .routeConfigurationChange:
-            output.text += "\nRoute change reason is: route configuration change"
+            output.text += "\nRoute configuration changed"
         //TODO: Handle other possible reasons?
         default:
             print("unknown reason")
         }
     }
     
-    private func portThatChanged(among newPorts: [AVAudioSessionPortDescription], fromPrevious oldPorts: Set<AVAudioSession.Port>, wasPluggedIn: Bool) ->  AVAudioSessionPortDescription? {
+    private func portThatChanged(among newPorts: [AVAudioSessionPortDescription]) ->  AVAudioSessionPortDescription? {
         for portDescription in newPorts {
             switch (audioInputPorts.contains(portDescription.portType), audioOutputPorts.contains(portDescription.portType)) {
             case (true, true):
@@ -165,7 +158,6 @@ class ViewController: UIViewController, UITextViewDelegate {
     }
 
     
-    
     //MARK: Methods
     func updateAudioSessionInfo(withNewInput newInput: AVAudioSessionPortDescription?, newOutput: AVAudioSessionPortDescription?) {
         inputAudioSources = populateAudioSources(with: audioSession.availableInputs ?? audioSession.currentRoute.inputs)
@@ -175,12 +167,12 @@ class ViewController: UIViewController, UITextViewDelegate {
             output.text += ("\nnewInput's data sources are: \(String(describing: newInput.dataSources))\n")
             let newInputSources = convert(portDescription: newInput)
             output.text += "\nNew input source is: \(newInputSources)\n"
-            newInputSources.forEach({addInputAudioSource($0)})
+            newInputSources.forEach { addInputAudioSource($0) }
             currentInput = newInputSources.first
         }
         if let newOutput = newOutput {
             let newOutputSources = convert(portDescription: newOutput)
-            newOutputSources.forEach({addOutputAudioSource($0)})
+            newOutputSources.forEach { addOutputAudioSource($0) }
             currentOutput = newOutputSources.first
         }
         
@@ -204,7 +196,7 @@ class ViewController: UIViewController, UITextViewDelegate {
         }
     }
     
-    //use this to add source that changed (from notification) to data source
+    //use this to add source that changed (from notification) to array of AudioSources
     private func convert(portDescription: AVAudioSessionPortDescription) -> [AudioSource] {
         var convertedAudioSources = [AudioSource]()
         if let dataSources = portDescription.dataSources, !dataSources.isEmpty {
