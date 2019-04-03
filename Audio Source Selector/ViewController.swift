@@ -99,7 +99,26 @@ class ViewController: UIViewController, UITextViewDelegate {
     
     private func setUpViews() {
         audioSourcesTableView.tableFooterView = UIView()
-        
+    }
+    
+    @IBAction func testTone(_ sender: UIButton) {
+        guard let testToneURL = Bundle.main.url(forResource: "440Hz_44100Hz_16bit_05sec.mp3", withExtension: nil) else {
+            return }
+        do {
+            audioPlayer = try AVAudioPlayer(contentsOf: testToneURL)
+            playOrStopTestTone(withAudioPlayer: audioPlayer)
+        } catch let error {
+            output.text += "\n" + error.localizedDescription + "\n"
+        }
+        testToneShouldPlay.toggle()
+    }
+    
+    private func playOrStopTestTone(withAudioPlayer player: AVAudioPlayer?) {
+        if testToneShouldPlay {
+            player?.play()
+        } else {
+            player?.stop()
+        }
     }
     
     //MARK: Audio Session Notifications
@@ -128,10 +147,9 @@ class ViewController: UIViewController, UITextViewDelegate {
             output.text += "\nRoute change reason is: route configuration change"
         //TODO: Handle other possible reasons?
         default:
-        print("unknown reason")
+            print("unknown reason")
         }
     }
-    
     
     private func portThatChanged(among newPorts: [AVAudioSessionPortDescription], fromPrevious oldPorts: Set<AVAudioSession.Port>, wasPluggedIn: Bool) ->  AVAudioSessionPortDescription? {
         for portDescription in newPorts {
@@ -145,19 +163,7 @@ class ViewController: UIViewController, UITextViewDelegate {
         }
         return nil
     }
-    
-    @IBAction func testTone(_ sender: UIButton) {
-        guard let testToneURL = Bundle.main.url(forResource: "440Hz_44100Hz_16bit_05sec.mp3", withExtension: nil) else {
-            return }
-        do {
-            audioPlayer = try AVAudioPlayer(contentsOf: testToneURL)
-            if testToneShouldPlay { audioPlayer?.play() } else { audioPlayer?.stop() }
-            
-        } catch let error {
-            output.text += "\n" + error.localizedDescription + "\n"
-        }
-        testToneShouldPlay.toggle()
-    }
+
     
     
     //MARK: Methods
