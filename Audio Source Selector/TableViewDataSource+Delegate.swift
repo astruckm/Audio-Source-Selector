@@ -115,25 +115,34 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
             guard audioSession.availableInputs != nil else { return }
             guard indexPath.row <= (inputAudioSources.count - 1) else { return }
             let selectedAudioSource = inputAudioSources[indexPath.row]
-            setAudioSource(selectedAudioSource)
+            setInputAudioSource(selectedAudioSource)
         } else if indexPath.section == 1 && !outputAudioSources.isEmpty {
             guard indexPath.row <= (outputAudioSources.count - 1) else { return }
             let selectedAudioSource = outputAudioSources[indexPath.row]
-            setAudioSource(selectedAudioSource)
+            setOutputAudioSource(selectedAudioSource)
         }
         tableView.reloadData()
     }
     
-    private func setAudioSource(_ audioSource: AudioSource) {
+    private func setInputAudioSource(_ audioSource: AudioSource) {
         do {
             try audioSession.setPreferredInput(audioSource.portInfo.description)
-            //TODO: set audioSession.setOutputDataSource() if you're dealing with an output AudioSource
             currentInput = audioSource
             if let dataSource = audioSource.dataSource {
                 try audioSession.preferredInput?.setPreferredDataSource(dataSource)
             }
         } catch let error {
-            output.text += "\n\(error.localizedDescription)\n"
+            output.text += "\nUnable to set input source: \(error.localizedDescription)\n"
+        }
+    }
+    
+    private func setOutputAudioSource(_ audioSource: AudioSource) {
+        do {
+            if let dataSource = audioSource.dataSource {
+                try audioSession.setOutputDataSource(dataSource)
+            }
+        } catch let error {
+            output.text += "\nUnable to set output source: \(error.localizedDescription)\n"
         }
     }
     
