@@ -99,6 +99,10 @@ class ViewController: UIViewController, UITextViewDelegate {
         audioSourcesTableView.tableFooterView = UIView()
     }
     
+    private func setUpInitialAudioSources() {
+        //Check if it is iPhone/iPad, then add default input sources
+    }
+    
     @IBAction func testTone(_ sender: UIButton) {
         guard let testToneURL = Bundle.main.url(forResource: "440Hz_44100Hz_16bit_05sec.mp3", withExtension: nil) else { return }
         do {
