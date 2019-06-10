@@ -17,7 +17,6 @@ class ViewController: UIViewController, UITextViewDelegate {
     @IBOutlet weak var audioSourcesTableView: UITableView!
     @IBOutlet weak var testToneButton: UIButton!
     
-    
     //MARK: Properties
     let audioSession = AVAudioSession.sharedInstance()
     var audioPlayer: AVAudioPlayer?
@@ -37,13 +36,21 @@ class ViewController: UIViewController, UITextViewDelegate {
     
     //In-use audio sources
     var currentInput: AudioSource? {
-        didSet {
+        willSet {
+            if let newAudioSource = newValue {
+                setInputAudioSource(newAudioSource)
+            }
+        } didSet {
             previousInput = oldValue
             output.text += "\ncurrentInput is: \(String(describing: currentInput)), previousInput is: \(String(describing: previousInput))\n"
         }
     }
     var currentOutput: AudioSource? {
-        didSet {
+        willSet {
+            if let newAudioSource = newValue {
+                setOutputAudioSource(newAudioSource)
+            }
+        } didSet {
             previousOutput = oldValue
             output.text += "\ncurrentOutput is: \(String(describing: currentOutput)), previousOutput is: \(String(describing: previousOutput))\n"
         }
@@ -63,6 +70,7 @@ class ViewController: UIViewController, UITextViewDelegate {
             print(error.localizedDescription)
         }
         
+        //TODO: this shouldn't be the first one if there is a saved audio source (from defaults)
         if let initialInput = audioSession.currentRoute.inputs.first {
             currentInput = AudioSource(portInfo: PortInfo(port: initialInput), dataSource: initialInput.dataSources?.first)
         }
@@ -100,6 +108,7 @@ class ViewController: UIViewController, UITextViewDelegate {
     }
     
     private func setUpInitialAudioSources() {
+        
         //Check if it is iPhone/iPad, then add default input sources
     }
     
@@ -138,7 +147,6 @@ class ViewController: UIViewController, UITextViewDelegate {
         case .newDeviceAvailable, .oldDeviceUnavailable:
             let newInputPort = portThatChanged(among: audioSession.currentRoute.inputs)
             let newOutputPort = portThatChanged(among: audioSession.currentRoute.outputs)
-            //TODO: handle cases where new port is nil
             updateAudioSessionInfo(withNewInput: newInputPort, newOutput: newOutputPort)
         case .routeConfigurationChange:
             output.text += "\nRoute configuration changed"
@@ -168,22 +176,51 @@ class ViewController: UIViewController, UITextViewDelegate {
         outputAudioSources = populateAudioSources(with: audioSession.currentRoute.outputs)
         
         if let newInput = newInput {
-            output.text += ("\nnewInput's data sources are: \(String(describing: newInput.dataSources))\n")
+            output.text += ("\nnewInput's data source(s): \(String(describing: newInput.dataSources))\n")
             let newInputSources = convert(portDescription: newInput)
             output.text += "\nNew input source is: \(newInputSources)\n"
             newInputSources.forEach { addInputAudioSource($0) }
             currentInput = newInputSources.first
+        } else {
+            currentInput = previousInput
+            output.text += "\naudioSession preferred input is: \(String(describing: audioSession.preferredInput))\n"
+            //TODO: handle if previousInput is nil. Possibly check if audioSession.preferredInput (and then preferredDataSource) is available. (worst case, just do inputAudioSources.first)
         }
         if let newOutput = newOutput {
             let newOutputSources = convert(portDescription: newOutput)
             newOutputSources.forEach { addOutputAudioSource($0) }
             currentOutput = newOutputSources.first
+        } else {
+            currentOutput = previousOutput
         }
         
         audioSourcesTableView.reloadData()
     }
     
     //helpers
+    
+    //set system's preferred source
+    private func setInputAudioSource(_ audioSource: AudioSource) {
+        do {
+            try audioSession.setPreferredInput(audioSource.portInfo.description)
+            if let dataSource = audioSource.dataSource {
+                try audioSession.preferredInput?.setPreferredDataSource(dataSource)
+            }
+        } catch let error {
+            output.text += "\nUnable to set input source: \(error.localizedDescription)\n"
+        }
+    }
+    private func setOutputAudioSource(_ audioSource: AudioSource) {
+        do {
+            if let dataSource = audioSource.dataSource {
+                try audioSession.setOutputDataSource(dataSource)
+            }
+        } catch let error {
+            output.text += "\nUnable to set output source: \(error.localizedDescription)\n"
+        }
+    }
+
+    
     //Adds non-duplicate input source
     private func addInputAudioSource(_ audioSource: AudioSource, possibleDataSource: AVAudioSessionDataSourceDescription? = nil) {
         output.text += "\nAdding audio source: \(audioSource)\n"
