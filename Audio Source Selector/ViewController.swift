@@ -10,7 +10,6 @@ import UIKit
 import AVFoundation
 import MediaPlayer
 
-//TODO: The three default device inputs (3 on the iPhone) 
 
 class ViewController: UIViewController, UITextViewDelegate {
     @IBOutlet weak var output: UITextView!
@@ -182,23 +181,21 @@ class ViewController: UIViewController, UITextViewDelegate {
             newInputSources.forEach { addInputAudioSource($0) }
             currentInput = newInputSources.first
         } else {
-            currentInput = previousInput
+            assignCurrentInputWhenUnplugged()
             output.text += "\naudioSession preferred input is: \(String(describing: audioSession.preferredInput))\n"
-            //TODO: handle if previousInput is nil. Possibly check if audioSession.preferredInput (and then preferredDataSource) is available. (worst case, just do inputAudioSources.first)
+            //TODO: if previousInput is nil, try to load the preferred input from UserDefaults. Otherwise, need to cache previous input of the previous input
         }
         if let newOutput = newOutput {
             let newOutputSources = convert(portDescription: newOutput)
             newOutputSources.forEach { addOutputAudioSource($0) }
             currentOutput = newOutputSources.first
         } else {
-            currentOutput = previousOutput
+            assignCurrentOutputWhenUnplugged()
         }
         
         audioSourcesTableView.reloadData()
     }
-    
-    //helpers
-    
+        
     //set system's preferred source
     private func setInputAudioSource(_ audioSource: AudioSource) {
         do {
@@ -234,6 +231,22 @@ class ViewController: UIViewController, UITextViewDelegate {
     private func addOutputAudioSource(_ audioSource: AudioSource, possibleDataSource: AVAudioSessionDataSourceDescription? = nil) {
         if !outputAudioSources.contains(audioSource) {
             outputAudioSources.append(audioSource)
+        }
+    }
+    
+    private func assignCurrentInputWhenUnplugged() {
+        if let _currentInput = currentInput {
+            if !inputAudioSources.contains(_currentInput) {
+                currentInput = previousInput
+            }
+        }
+    }
+    
+    private func assignCurrentOutputWhenUnplugged() {
+        if let _currentInput = currentInput {
+            if !inputAudioSources.contains(_currentInput) {
+                currentOutput = previousOutput
+            }
         }
     }
     

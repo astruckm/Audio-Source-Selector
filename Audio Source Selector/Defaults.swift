@@ -17,7 +17,7 @@ final class Defaults {
         standardDefaults.set(audioSource, forKey: selectedInputSource)
     }
     
-    func loadSelectedInputSource() -> AudioSource {
+    func loadSelectedInputSource() -> AudioSource? {
         //TODO: how to get an AudioSource?
         let audioSource = standardDefaults.object(forKey: selectedInputSource) as! AudioSource
         
