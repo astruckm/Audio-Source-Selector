@@ -18,46 +18,11 @@ class ViewController: UIViewController, UITextViewDelegate {
     
     //MARK: Properties
     let audioSession = AVAudioSession.sharedInstance()
+    let viewModel = ViewModel()
     var audioPlayer: AVAudioPlayer?
     var testToneShouldPlay = true
 
     //Custom data sources
-    var inputAudioSources = [AudioSource]()
-    var audioInputPorts: Set<AVAudioSession.Port> {
-        let inputPorts = inputAudioSources.map{$0.portInfo.description.portType}
-        return Set(inputPorts)
-    }
-    var outputAudioSources = [AudioSource]()
-    var audioOutputPorts: Set<AVAudioSession.Port> {
-        let outputPorts =  outputAudioSources.map({$0.portInfo.description.portType})
-        return Set(outputPorts)
-    }
-    
-    //In-use audio sources
-    var currentInput: AudioSource? {
-        willSet {
-            if let newAudioSource = newValue {
-                setInputAudioSource(newAudioSource)
-            }
-        } didSet {
-            previousInput = oldValue
-            output.text += "\ncurrentInput is: \(String(describing: currentInput)), previousInput is: \(String(describing: previousInput))\n"
-        }
-    }
-    var currentOutput: AudioSource? {
-        willSet {
-            if let newAudioSource = newValue {
-                setOutputAudioSource(newAudioSource)
-            }
-        } didSet {
-            previousOutput = oldValue
-            output.text += "\ncurrentOutput is: \(String(describing: currentOutput)), previousOutput is: \(String(describing: previousOutput))\n"
-        }
-    }
-    var previousInput: AudioSource?
-    var previousOutput: AudioSource?
-    
-    
     //MARK: View Controller lifecycle methods
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -71,36 +36,20 @@ class ViewController: UIViewController, UITextViewDelegate {
         
         //TODO: this shouldn't be the first one if there is a saved audio source (from defaults)
         if let initialInput = audioSession.currentRoute.inputs.first {
-            currentInput = AudioSource(portInfo: PortInfo(port: initialInput), dataSource: initialInput.dataSources?.first)
+            viewModel.currentInput = AudioSource(portInfo: PortInfo(port: initialInput), dataSource: initialInput.dataSources?.first)
         }
         if let initialOutput = audioSession.currentRoute.outputs.first {
-            currentOutput = AudioSource(portInfo: PortInfo(port: initialOutput), dataSource: initialOutput.dataSources?.first)
+            viewModel.currentOutput = AudioSource(portInfo: PortInfo(port: initialOutput), dataSource: initialOutput.dataSources?.first)
         }
-        previousInput = nil
-        previousOutput = nil
+        viewModel.previousInput = nil
+        viewModel.previousOutput = nil
         
-        inputAudioSources = populateAudioSources(with: audioSession.availableInputs ?? audioSession.currentRoute.inputs)
-        outputAudioSources = populateAudioSources(with: audioSession.currentRoute.outputs)
+        viewModel.inputAudioSources = viewModel.populateAudioSources(with: audioSession.availableInputs ?? audioSession.currentRoute.inputs)
+        viewModel.outputAudioSources = viewModel.populateAudioSources(with: audioSession.currentRoute.outputs)
         
         NotificationCenter.default.post(name: AVAudioSession.routeChangeNotification, object: nil)
         setupNotifications()
     }
-    
-    private func populateAudioSources(with descriptions: [AVAudioSessionPortDescription]) -> [AudioSource] {
-        var audioSources = [AudioSource]()
-        for description in descriptions {
-            let portInfo = PortInfo(port: description)
-            if let dataSources = description.dataSources, !dataSources.isEmpty {
-                for dataSource in dataSources {
-                    audioSources.append(AudioSource(portInfo: portInfo, dataSource: dataSource))
-                }
-            } else {
-                audioSources.append(AudioSource(portInfo: portInfo, dataSource: description.preferredDataSource))
-            }
-        }
-        return audioSources
-    }
-    
     
     private func setUpViews() {
         audioSourcesTableView.tableFooterView = UIView()
@@ -144,9 +93,10 @@ class ViewController: UIViewController, UITextViewDelegate {
         }
         switch reason {
         case .newDeviceAvailable, .oldDeviceUnavailable:
-            let newInputPort = portThatChanged(among: audioSession.currentRoute.inputs)
-            let newOutputPort = portThatChanged(among: audioSession.currentRoute.outputs)
-            updateAudioSessionInfo(withNewInput: newInputPort, newOutput: newOutputPort)
+            let newInputPort = viewModel.portThatChanged(among: audioSession.currentRoute.inputs)
+            let newOutputPort = viewModel.portThatChanged(among: audioSession.currentRoute.outputs)
+            viewModel.updateAudioSessionInfo(withNewInput: newInputPort, newOutput: newOutputPort)
+            audioSourcesTableView.reloadData()
         case .routeConfigurationChange:
             output.text += "\nRoute configuration changed"
         //TODO: Handle other possible reasons?
@@ -155,121 +105,125 @@ class ViewController: UIViewController, UITextViewDelegate {
         }
     }
     
-    private func portThatChanged(among newPorts: [AVAudioSessionPortDescription]) ->  AVAudioSessionPortDescription? {
-        for portDescription in newPorts {
-            switch (audioInputPorts.contains(portDescription.portType), audioOutputPorts.contains(portDescription.portType)) {
-            case (true, true):
-                output.text += "Error! Input and output have the same port type!"
-            case (true, false): continue
-            case (false, true): continue
-            case (false, false): return portDescription
-            }
-        }
-        return nil
-    }
-
-    
-    //MARK: Methods
-    func updateAudioSessionInfo(withNewInput newInput: AVAudioSessionPortDescription?, newOutput: AVAudioSessionPortDescription?) {
-        inputAudioSources = populateAudioSources(with: audioSession.availableInputs ?? audioSession.currentRoute.inputs)
-        outputAudioSources = populateAudioSources(with: audioSession.currentRoute.outputs)
-        
-        if let newInput = newInput {
-            output.text += ("\nnewInput's data source(s): \(String(describing: newInput.dataSources))\n")
-            let newInputSources = convert(portDescription: newInput)
-            output.text += "\nNew input source is: \(newInputSources)\n"
-            newInputSources.forEach { addInputAudioSource($0) }
-            currentInput = newInputSources.first
-        } else {
-            assignCurrentInputWhenUnplugged()
-            output.text += "\naudioSession preferred input is: \(String(describing: audioSession.preferredInput))\n"
-            //TODO: if previousInput is nil, try to load the preferred input from UserDefaults. Otherwise, need to cache previous input of the previous input
-        }
-        if let newOutput = newOutput {
-            let newOutputSources = convert(portDescription: newOutput)
-            newOutputSources.forEach { addOutputAudioSource($0) }
-            currentOutput = newOutputSources.first
-        } else {
-            assignCurrentOutputWhenUnplugged()
-        }
-        
-        audioSourcesTableView.reloadData()
-    }
-        
-    //set system's preferred source
-    private func setInputAudioSource(_ audioSource: AudioSource) {
-        do {
-            try audioSession.setPreferredInput(audioSource.portInfo.description)
-            if let dataSource = audioSource.dataSource {
-                try audioSession.preferredInput?.setPreferredDataSource(dataSource)
-            }
-        } catch let error {
-            output.text += "\nUnable to set input source: \(error.localizedDescription)\n"
-        }
-    }
-    private func setOutputAudioSource(_ audioSource: AudioSource) {
-        do {
-            if let dataSource = audioSource.dataSource {
-                try audioSession.setOutputDataSource(dataSource)
-            }
-        } catch let error {
-            output.text += "\nUnable to set output source: \(error.localizedDescription)\n"
-        }
-    }
-
-    
-    //Adds non-duplicate input source
-    private func addInputAudioSource(_ audioSource: AudioSource, possibleDataSource: AVAudioSessionDataSourceDescription? = nil) {
-        output.text += "\nAdding audio source: \(audioSource)\n"
-        if !inputAudioSources.contains(audioSource) {
-            output.text += "Adding input audio source"
-            inputAudioSources.append(audioSource)
-        }
-    }
-
-    //Adds non-duplicate output source
-    private func addOutputAudioSource(_ audioSource: AudioSource, possibleDataSource: AVAudioSessionDataSourceDescription? = nil) {
-        if !outputAudioSources.contains(audioSource) {
-            outputAudioSources.append(audioSource)
-        }
-    }
-    
-    private func assignCurrentInputWhenUnplugged() {
-        if let _currentInput = currentInput {
-            if !inputAudioSources.contains(_currentInput) {
-                currentInput = previousInput
-            }
-        }
-    }
-    
-    private func assignCurrentOutputWhenUnplugged() {
-        if let _currentInput = currentInput {
-            if !inputAudioSources.contains(_currentInput) {
-                currentOutput = previousOutput
-            }
-        }
-    }
-    
-    //use this to add source that changed (from notification) to array of AudioSources
-    private func convert(portDescription: AVAudioSessionPortDescription) -> [AudioSource] {
-        var convertedAudioSources = [AudioSource]()
-        if let dataSources = portDescription.dataSources, !dataSources.isEmpty {
-            for dataSource in dataSources {
-                let audioSource = AudioSource(portInfo: PortInfo(port: portDescription), dataSource: dataSource)
-                convertedAudioSources.append(audioSource)
-            }
-            return convertedAudioSources
-        }
-        
-        let audioSource = AudioSource(portInfo: PortInfo(port: portDescription), dataSource: nil)
-        convertedAudioSources.append(audioSource)
-        output.text += "\nconvertedAudioSources: \(convertedAudioSources)\n"
-        return convertedAudioSources
-    }
-        
-
 }
 
+extension ViewController: UITableViewDataSource, UITableViewDelegate {
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        switch section {
+        case 0:
+            return "AUDIO INPUT SOURCE"
+        case 1:
+            return "AUDIO OUTPUT"
+            //        case 2:
+        //            return "VOLUME"
+        default:
+            return ""
+        }
+        
+    }
+    
+    func numberOfSections(in tableView: UITableView) -> Int {
+        return 3
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 50
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        switch section {
+        case 0:
+            if !viewModel.inputAudioSources.isEmpty {
+                return viewModel.inputAudioSources.count
+            }
+            fallthrough
+        case 1:
+            if !viewModel.outputAudioSources.isEmpty {
+                return viewModel.outputAudioSources.count
+            }
+            fallthrough
+            //        case 2:
+        //            return 1
+        default:
+            return 3
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        switch indexPath.section {
+        case 0:
+            guard audioSession.availableInputs != nil else { return UITableViewCell() }
+            guard indexPath.row <= (viewModel.inputAudioSources.count - 1) else {
+                output.text += "\ncellForRowAt not in sync with input audio sources"
+                return UITableViewCell()
+            }
+            let audioSourceCell = tableView.dequeueReusableCell(withIdentifier: "audioSource", for: indexPath) as! AudioSourceTableViewCell
+            let audioSource = viewModel.inputAudioSources[indexPath.row]
+            
+            if let audioSourceDataSource = audioSource.dataSource {
+                //If cell is a data source, label it by port name AND data source name
+                audioSourceCell.audioSourceLabel.text = audioSource.portInfo.description.portName + " " + audioSourceDataSource.dataSourceName
+            } else {
+                audioSourceCell.audioSourceLabel.text = audioSource.portInfo.description.portName
+            }
+            if let currentInput = viewModel.currentInput {
+                audioSourceCell.accessoryType = currentInput == audioSource ? .checkmark : .none
+            }
+            
+            output.text += "\nThere are \(viewModel.inputAudioSources.count) current inputs\n"
+            return audioSourceCell
+        case 1:
+            guard indexPath.row <= (viewModel.outputAudioSources.count - 1) else {
+                output.text += "\ncellForRowAt not in sync with output audio sources"
+                return UITableViewCell()
+            }
+            let audioSourceCell = tableView.dequeueReusableCell(withIdentifier: "audioSource", for: indexPath) as! AudioSourceTableViewCell
+            let audioSource = viewModel.outputAudioSources[indexPath.row]
+            
+            if let audioSourceDataSource = audioSource.dataSource {
+                //If cell is a data source, label it by port name AND data source name
+                audioSourceCell.audioSourceLabel.text = audioSource.portInfo.description.portName + " " + audioSourceDataSource.dataSourceName
+            } else {
+                audioSourceCell.audioSourceLabel.text = audioSource.portInfo.description.portName
+            }
+            if let currentOutput = viewModel.currentOutput {
+                audioSourceCell.accessoryType = currentOutput == audioSource ? .checkmark : .none
+            }
+            
+            output.text += "\nThere are \(viewModel.outputAudioSources.count) current outputs\n"
+            return audioSourceCell
+            //        case 2:
+            //            let volumeCell = tableView.dequeueReusableCell(withIdentifier: "volumeBar", for: indexPath)
+        //            return volumeCell
+        default:
+            print("unable to populate cells")
+            return UITableViewCell()
+        }
+        
+    }
+    
+    //TODO: add this helper func to cellForRowAt
+    private func populateAudioSourceCell(_ audioSourceCell: AudioSourceTableViewCell, withAudioSource audioSource: AudioSource) -> AudioSourceTableViewCell {
+        
+        
+        return audioSourceCell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if indexPath.section == 0 && !viewModel.inputAudioSources.isEmpty {
+            guard audioSession.availableInputs != nil else { return }
+            guard indexPath.row <= (viewModel.inputAudioSources.count - 1) else { return }
+            let selectedAudioSource = viewModel.inputAudioSources[indexPath.row]
+            viewModel.currentInput = selectedAudioSource
+        } else if indexPath.section == 1 && !viewModel.outputAudioSources.isEmpty {
+            guard indexPath.row <= (viewModel.outputAudioSources.count - 1) else { return }
+            let selectedAudioSource = viewModel.outputAudioSources[indexPath.row]
+            viewModel.currentOutput = selectedAudioSource
+        }
+        tableView.reloadData()
+    }
+    
+}
 
 
 

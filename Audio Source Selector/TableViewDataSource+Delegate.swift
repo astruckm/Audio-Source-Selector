@@ -34,13 +34,13 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
         case 0:
-            if !inputAudioSources.isEmpty {
-                return inputAudioSources.count
+            if !viewModel.inputAudioSources.isEmpty {
+                return viewModel.inputAudioSources.count
             }
             fallthrough
         case 1:
-            if !outputAudioSources.isEmpty {
-                return outputAudioSources.count
+            if !viewModel.outputAudioSources.isEmpty {
+                return viewModel.outputAudioSources.count
             }
             fallthrough
 //        case 2:
@@ -54,12 +54,12 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
         switch indexPath.section {
         case 0:
             guard audioSession.availableInputs != nil else { return UITableViewCell() }
-            guard indexPath.row <= (inputAudioSources.count - 1) else {
+            guard indexPath.row <= (viewModel.inputAudioSources.count - 1) else {
                 output.text += "\ncellForRowAt not in sync with input audio sources"
                 return UITableViewCell()
             }
             let audioSourceCell = tableView.dequeueReusableCell(withIdentifier: "audioSource", for: indexPath) as! AudioSourceTableViewCell
-            let audioSource = inputAudioSources[indexPath.row]
+            let audioSource = viewModel.inputAudioSources[indexPath.row]
             
             if let audioSourceDataSource = audioSource.dataSource {
                 //If cell is a data source, label it by port name AND data source name
@@ -67,19 +67,19 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
             } else {
                 audioSourceCell.audioSourceLabel.text = audioSource.portInfo.description.portName
             }
-            if let currentInput = currentInput {
+            if let currentInput = viewModel.currentInput {
                 audioSourceCell.accessoryType = currentInput == audioSource ? .checkmark : .none
             }
             
-            output.text += "\nThere are \(inputAudioSources.count) current inputs\n"
+            output.text += "\nThere are \(viewModel.inputAudioSources.count) current inputs\n"
             return audioSourceCell
         case 1:
-            guard indexPath.row <= (outputAudioSources.count - 1) else {
+            guard indexPath.row <= (viewModel.outputAudioSources.count - 1) else {
                 output.text += "\ncellForRowAt not in sync with output audio sources"
                 return UITableViewCell()
             }
             let audioSourceCell = tableView.dequeueReusableCell(withIdentifier: "audioSource", for: indexPath) as! AudioSourceTableViewCell
-            let audioSource = outputAudioSources[indexPath.row]
+            let audioSource = viewModel.outputAudioSources[indexPath.row]
             
             if let audioSourceDataSource = audioSource.dataSource {
                 //If cell is a data source, label it by port name AND data source name
@@ -87,11 +87,11 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
             } else {
                 audioSourceCell.audioSourceLabel.text = audioSource.portInfo.description.portName
             }
-            if let currentOutput = currentOutput {
+            if let currentOutput = viewModel.currentOutput {
                 audioSourceCell.accessoryType = currentOutput == audioSource ? .checkmark : .none
             }
 
-            output.text += "\nThere are \(outputAudioSources.count) current outputs\n"
+            output.text += "\nThere are \(viewModel.outputAudioSources.count) current outputs\n"
             return audioSourceCell
 //        case 2:
 //            let volumeCell = tableView.dequeueReusableCell(withIdentifier: "volumeBar", for: indexPath)
@@ -111,15 +111,15 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if indexPath.section == 0 && !inputAudioSources.isEmpty {
+        if indexPath.section == 0 && !viewModel.inputAudioSources.isEmpty {
             guard audioSession.availableInputs != nil else { return }
-            guard indexPath.row <= (inputAudioSources.count - 1) else { return }
-            let selectedAudioSource = inputAudioSources[indexPath.row]
-            currentInput = selectedAudioSource
-        } else if indexPath.section == 1 && !outputAudioSources.isEmpty {
-            guard indexPath.row <= (outputAudioSources.count - 1) else { return }
-            let selectedAudioSource = outputAudioSources[indexPath.row]
-            currentOutput = selectedAudioSource
+            guard indexPath.row <= (viewModel.inputAudioSources.count - 1) else { return }
+            let selectedAudioSource = viewModel.inputAudioSources[indexPath.row]
+            viewModel.currentInput = selectedAudioSource
+        } else if indexPath.section == 1 && !viewModel.outputAudioSources.isEmpty {
+            guard indexPath.row <= (viewModel.outputAudioSources.count - 1) else { return }
+            let selectedAudioSource = viewModel.outputAudioSources[indexPath.row]
+            viewModel.currentOutput = selectedAudioSource
         }
         tableView.reloadData()
     }

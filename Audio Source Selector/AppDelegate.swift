@@ -21,9 +21,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationWillTerminate(_ application: UIApplication) {
         //TODO: Code to add to UserDefaults
-        let vc = ViewController()
-        vc.output.text += "Table view is: " + vc.audioSourcesTableView.description
-        vc.output.text += "# of Input audio sources: " + String(vc.inputAudioSources.count)
     }
 
 
