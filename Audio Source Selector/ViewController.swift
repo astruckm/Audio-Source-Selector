@@ -86,13 +86,22 @@ class ViewController: UIViewController, UITextViewDelegate {
     }
     
     @objc func handleRouteChange(notification: Notification) {
-        guard let userInfo = notification.userInfo,
-            let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
-            let reason = AVAudioSession.RouteChangeReason(rawValue:reasonValue) else {
+        output.text += "handleRouteChange invoked"
+        guard let userInfo = notification.userInfo else {
+                output.text += "notification userInfo is nil"
                 return
+        }
+        guard let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt else {
+                output.text += "reasonValue not found or invalid"
+                return
+        }
+        guard let reason = AVAudioSession.RouteChangeReason(rawValue:reasonValue) else {
+            output.text += "unable to initialize route change reason"
+            return
         }
         switch reason {
         case .newDeviceAvailable, .oldDeviceUnavailable:
+            output.text += "new route plugged in or old route unplugged"
             let newInputPort = viewModel.portThatChanged(among: audioSession.currentRoute.inputs)
             let newOutputPort = viewModel.portThatChanged(among: audioSession.currentRoute.outputs)
             viewModel.updateAudioSessionInfo(withNewInput: newInputPort, newOutput: newOutputPort)
