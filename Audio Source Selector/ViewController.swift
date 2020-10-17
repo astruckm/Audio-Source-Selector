@@ -102,7 +102,7 @@ class ViewController: UIViewController, UITextViewDelegate {
         switch reason {
         case .newDeviceAvailable, .oldDeviceUnavailable:
             output.text += "new route plugged in or old route unplugged"
-            let newInputPort = viewModel.portThatChanged(among: audioSession.currentRoute.inputs)
+            let newInputPort = viewModel.portThatChanged(among: audioSession.availableInputs ?? audioSession.currentRoute.inputs)
             let newOutputPort = viewModel.portThatChanged(among: audioSession.currentRoute.outputs)
             viewModel.updateAudioSessionInfo(withNewInput: newInputPort, newOutput: newOutputPort)
             audioSourcesTableView.reloadData()
@@ -151,8 +151,6 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
                 return viewModel.outputAudioSources.count
             }
             fallthrough
-            //        case 2:
-        //            return 1
         default:
             return 3
         }
